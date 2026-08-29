@@ -16,7 +16,7 @@ const daysIn=d=>new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
 const today=d=>key(d)===key(now);
 
 function login(message=''){
- app.innerHTML=`<main class="login-page"><section class="login-card"><div class="login-fox">🦊</div><h1>De Vosjeskalender</h1><p>Welkom! Log in om de kalender te bekijken.</p><form id="login"><label>E-mailadres<input id="email" type="email" autocomplete="username" required placeholder="juf@school.be"></label><label>Wachtwoord<input id="password" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">🦊 Inloggen</button><div class="error">${message}</div></form></section></main>`;
+ app.innerHTML=`<main class="login-page"><section class="login-card"><div class="login-fox">🦊</div><h1>De Vosjes</h1><p>Welkom! Log in om de kalender te bekijken.</p><form id="login"><label>E-mailadres<input id="email" type="email" autocomplete="username" required placeholder="juf@school.be"></label><label>Wachtwoord<input id="password" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">🦊 Inloggen</button><div class="error">${message}</div></form></section></main>`;
  document.querySelector('#login').onsubmit=async e=>{e.preventDefault(); const b=e.target.querySelector('button');b.disabled=true;b.textContent='Even wachten…';const {error}=await supabase.auth.signInWithPassword({email:email.value.trim(),password:password.value}); if(error)return login('E-mailadres of wachtwoord klopt niet.'); await start();};
 }
 async function getProfile(id){const {data,error}=await supabase.from('profiles').select('id,display_name,role,active').eq('id',id).single();return error||!data||!data.active?null:data;}
