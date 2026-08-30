@@ -20,11 +20,51 @@ const weatherImages={
  rainbow:new URL('./weather/rainbow.svg',import.meta.url).href,
  storm:new URL('./weather/storm.svg',import.meta.url).href
 };
-const weatherKey='k3paalbos-weather-today';let selected='';let observer;const todayKey=()=>new Date().toISOString().slice(0,10);
-async function loadWeather(){try{const {data}=await supabase.from('weather_daily').select('weather_type').eq('weather_date',todayKey()).maybeSingle();if(data?.weather_type)selected=data.weather_type}catch{}if(!selected)selected=localStorage.getItem(weatherKey)||''}
-async function saveWeather(label){selected=label;localStorage.setItem(weatherKey,label);const {data:{user}}=await supabase.auth.getUser();if(user){const {error}=await supabase.from('weather_daily').upsert({weather_date:todayKey(),weather_type:label,updated_by:user.id,updated_at:new Date().toISOString()},{onConflict:'weather_date'});if(error)console.warn('Weer kon niet in Supabase worden opgeslagen:',error.message)}renderWeather()}
-function addStyles(){if(document.getElementById('weather-styles'))return;const s=document.createElement('style');s.id='weather-styles';s.textContent=`.weather-page{min-height:100vh;padding:18px}.weather-card{max-width:1100px;margin:0 auto;background:#fff;border:2px solid #dce9db;border-radius:28px;box-shadow:0 8px 24px #234c2712;padding:28px}.weather-header{display:flex;align-items:center;gap:18px;margin-bottom:25px}.weather-header .weather-fox{width:62px;height:62px;display:grid;place-items:center;background:#fff0df;border-radius:50%;font-size:38px}.weather-header h2{color:#285d39;font-size:clamp(28px,4vw,40px);margin:0}.weather-header p{color:#718176;margin:5px 0 0}.weather-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.weather-option{border:3px solid #e1eadf;background:#fbfdf9;border-radius:20px;min-height:165px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:.15s;touch-action:manipulation;cursor:pointer}.weather-option:hover{background:#f1f8ef;transform:translateY(-2px)}.weather-option.selected{border-color:#4f9a61;background:#e8f4e7;box-shadow:0 0 0 4px #d7ecd5}.weather-option img{width:105px;height:105px;object-fit:contain}.weather-option small{font-size:15px;font-weight:bold;color:#496153;text-align:center}.weather-selected{margin-top:22px;text-align:center;padding:13px;border-radius:15px;background:#f5f9f2;color:#55705f;font-size:15px}@media(max-width:700px){.weather-page{padding:9px}.weather-card{padding:16px;border-radius:22px}.weather-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.weather-option{min-height:145px}.weather-option img{width:82px;height:82px}.weather-option small{font-size:12px}}@media(max-width:430px){.weather-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.weather-option{min-height:145px}}`;document.head.appendChild(s)}
-function enableWeatherNav(){const buttons=[...document.querySelectorAll('.nav-item')];const weather=buttons.find(b=>b.textContent.includes('Weer'));if(weather){weather.disabled=false;weather.dataset.weatherNav='true';if(!weather.dataset.bound){weather.dataset.bound='true';weather.addEventListener('click',e=>{e.preventDefault();history.replaceState(null,'','#weather');renderWeather()})}}if(location.hash==='#week'){const week=buttons.find(b=>b.dataset.page==='week');if(week&&!week.dataset.weekRedirected){week.dataset.weekRedirected='true';setTimeout(()=>week.click(),0)}}}
-function navigate(page){if(page==='week'){location.href='/#week';return}location.href='/'}
-function renderWeather(){addStyles();document.title='Weer | De Vosjes';const account=document.querySelector('.account')?.textContent||'';document.querySelector('#app').innerHTML=`<main class="weather-page"><header class="topbar"><div class="brand"><div class="fox">🦊</div><div><h1>De Vosjes</h1><p>Hoe is het weer vandaag?</p></div></div><nav class="main-nav"><button class="nav-item" id="weather-calendar"><span>📅</span><small>Kalender</small></button><button class="nav-item" id="weather-week"><span>🗓️</span><small>Weekkalender</small></button><button class="nav-item active"><span>🌤️</span><small>Weer</small></button><button class="nav-item" disabled><span>👕</span><small>Kleding</small></button></nav><div class="account">${account}</div></header><section class="weather-card"><div class="weather-header"><div class="weather-fox">🦊</div><div><h2>Hoe is het weer vandaag?</h2><p>Kies samen het pictogram dat het beste bij buiten past.</p></div></div><div class="weather-grid">${weatherOptions.map(([id,label])=>`<button class="weather-option ${selected===label?'selected':''}" data-weather="${label}"><img src="${weatherImages[id]}" alt="${label}"><small>${label}</small></button>`).join('')}</div>${selected?`<div class="weather-selected">Vandaag is het <strong>${selected.toLowerCase()}</strong>. 🦊</div>`:'<div class="weather-selected">Kies een pictogram hierboven.</div>'}</section></main>`;document.querySelectorAll('.weather-option').forEach(b=>b.onclick=()=>saveWeather(b.dataset.weather));document.querySelector('#weather-calendar').onclick=()=>navigate('calendar');document.querySelector('#weather-week').onclick=()=>navigate('week')}
-addStyles();observer=new MutationObserver(()=>enableWeatherNav());observer.observe(document.body,{childList:true,subtree:true});setTimeout(async()=>{enableWeatherNav();await loadWeather();if(location.hash==='#weather')renderWeather();else if(location.hash==='#week')enableWeatherNav()},0);
+const weatherKey='k3paalbos-weather-today';
+let selected='';
+let loaded=false;
+const todayKey=()=>new Date().toISOString().slice(0,10);
+
+async function loadWeather(){
+  if(loaded)return;
+  try{
+    const {data}=await supabase.from('weather_daily').select('weather_type').eq('weather_date',todayKey()).maybeSingle();
+    if(data?.weather_type)selected=data.weather_type;
+  }catch{}
+  if(!selected)selected=localStorage.getItem(weatherKey)||'';
+  loaded=true;
+}
+
+async function saveWeather(label,navigate){
+  selected=label;
+  localStorage.setItem(weatherKey,label);
+  const {data:{user}}=await supabase.auth.getUser();
+  if(user){
+    const {error}=await supabase.from('weather_daily').upsert({weather_date:todayKey(),weather_type:label,updated_by:user.id,updated_at:new Date().toISOString()},{onConflict:'weather_date'});
+    if(error)console.warn('Weer kon niet in Supabase worden opgeslagen:',error.message);
+  }
+  renderWeather(navigate);
+}
+
+function addStyles(){
+  if(document.getElementById('weather-styles'))return;
+  const s=document.createElement('style');
+  s.id='weather-styles';
+  s.textContent=`.weather-page{min-height:100vh;padding:18px}.weather-card{max-width:1100px;margin:0 auto;background:#fff;border:2px solid #dce9db;border-radius:28px;box-shadow:0 8px 24px #234c2712;padding:28px}.weather-header{display:flex;align-items:center;gap:18px;margin-bottom:25px}.weather-header .weather-fox{width:62px;height:62px;display:grid;place-items:center;background:#fff0df;border-radius:50%;font-size:38px}.weather-header h2{color:#285d39;font-size:clamp(28px,4vw,40px);margin:0}.weather-header p{color:#718176;margin:5px 0 0}.weather-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.weather-option{border:3px solid #e1eadf;background:#fbfdf9;border-radius:20px;min-height:165px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:.15s;touch-action:manipulation;cursor:pointer}.weather-option:hover{background:#f1f8ef;transform:translateY(-2px)}.weather-option.selected{border-color:#4f9a61;background:#e8f4e7;box-shadow:0 0 0 4px #d7ecd5}.weather-option img{width:105px;height:105px;object-fit:contain}.weather-option small{font-size:15px;font-weight:bold;color:#496153;text-align:center}.weather-selected{margin-top:22px;text-align:center;padding:13px;border-radius:15px;background:#f5f9f2;color:#55705f;font-size:15px}@media(max-width:700px){.weather-page{padding:9px}.weather-card{padding:16px;border-radius:22px}.weather-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.weather-option{min-height:145px}.weather-option img{width:82px;height:82px}.weather-option small{font-size:12px}}@media(max-width:430px){.weather-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.weather-option{min-height:145px}}`;
+  document.head.appendChild(s);
+}
+
+export async function showWeather(navigate){
+  await loadWeather();
+  renderWeather(navigate);
+}
+
+function renderWeather(navigate){
+  addStyles();
+  document.title='Weer | De Vosjes';
+  const account=document.querySelector('.account')?.textContent||'';
+  document.querySelector('#app').innerHTML=`<main class="weather-page"><header class="topbar"><div class="brand"><div class="fox">🦊</div><div><h1>De Vosjes</h1><p>Hoe is het weer vandaag?</p></div></div><nav class="main-nav"><button class="nav-item" id="weather-calendar"><span>📅</span><small>Kalender</small></button><button class="nav-item" id="weather-week"><span>🗓️</span><small>Weekkalender</small></button><button class="nav-item active"><span>🌤️</span><small>Weer</small></button><button class="nav-item" disabled><span>👕</span><small>Kleding</small></button></nav><div class="account">${account}</div></header><section class="weather-card"><div class="weather-header"><div class="weather-fox">🦊</div><div><h2>Hoe is het weer vandaag?</h2><p>Kies samen het pictogram dat het beste bij buiten past.</p></div></div><div class="weather-grid">${weatherOptions.map(([id,label])=>`<button class="weather-option ${selected===label?'selected':''}" data-weather="${label}"><img src="${weatherImages[id]}" alt="${label}"><small>${label}</small></button>`).join('')}</div>${selected?`<div class="weather-selected">Vandaag is het <strong>${selected.toLowerCase()}</strong>. 🦊</div>`:'<div class="weather-selected">Kies een pictogram hierboven.</div>'}</section></main>`;
+  document.querySelectorAll('.weather-option').forEach(b=>b.onclick=()=>saveWeather(b.dataset.weather,navigate));
+  document.querySelector('#weather-calendar').onclick=()=>navigate('calendar');
+  document.querySelector('#weather-week').onclick=()=>navigate('week');
+}
