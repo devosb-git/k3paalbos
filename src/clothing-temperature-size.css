@@ -1,55 +1,55 @@
-/* Maak de temperatuurkeuzes groot en laat het selectiekader strak rond de illustratie vallen. */
-.temp-options{
+/* De dynamische kledingstijl wordt later toegevoegd, dus deze regels zijn bewust specifieker. */
+.clothing-page .temp-options{
   align-items:center;
-  gap:18px;
+  gap:16px;
 }
 
-.temp-option{
+.clothing-page .temp-option{
   width:fit-content;
   min-height:0;
-  padding:5px;
+  padding:6px;
   margin:0 auto;
   border-radius:18px;
 }
 
-.temp-option .temp-image{
-  width:230px;
-  height:310px;
-  max-width:none;
-  max-height:none;
+.clothing-page .temp-option .temp-image{
+  width:210px !important;
+  height:360px !important;
+  max-width:none !important;
+  max-height:none !important;
   object-fit:contain;
   display:block;
 }
 
-.temp-option.selected{
+.clothing-page .temp-option.selected{
   background:#e8f4e7;
   box-shadow:0 0 0 4px #4f9a61;
 }
 
 @media(max-width:1250px){
-  .temp-option .temp-image{
-    width:205px;
-    height:280px;
+  .clothing-page .temp-option .temp-image{
+    width:185px !important;
+    height:320px !important;
   }
 }
 
 @media(max-width:1100px){
-  .temp-option .temp-image{
-    width:185px;
-    height:250px;
+  .clothing-page .temp-option .temp-image{
+    width:165px !important;
+    height:285px !important;
   }
 }
 
 @media(max-width:900px){
-  .temp-option .temp-image{
-    width:180px;
-    height:240px;
+  .clothing-page .temp-option .temp-image{
+    width:185px !important;
+    height:320px !important;
   }
 }
 
 @media(max-width:560px){
-  .temp-option .temp-image{
-    width:150px;
-    height:205px;
+  .clothing-page .temp-option .temp-image{
+    width:155px !important;
+    height:270px !important;
   }
 }
