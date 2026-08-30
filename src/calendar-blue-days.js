@@ -1,28 +1,51 @@
+import { createClient } from '@supabase/supabase-js';
 import './calendar-blue-days.css';
 
-const BLUE_DAYS_STORAGE_KEY = 'k3paalbos-calendar-blue-days';
+const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
+let manualBlueDays = new Set();
+let loaded = false;
+let loading = null;
 
-function loadManualBlueDays() {
-  try {
-    return new Set(JSON.parse(localStorage.getItem(BLUE_DAYS_STORAGE_KEY) || '[]'));
-  } catch {
-    return new Set();
-  }
-}
-
-function saveManualBlueDays(days) {
-  localStorage.setItem(BLUE_DAYS_STORAGE_KEY, JSON.stringify([...days].sort()));
+async function loadManualBlueDays() {
+  if (loaded) return manualBlueDays;
+  if (loading) return loading;
+  loading = (async () => {
+    const { data, error } = await supabase.from('calendar_blue_days').select('day').order('day');
+    if (!error) {
+      manualBlueDays = new Set((data || []).map(row => row.day));
+      loaded = true;
+    }
+    loading = null;
+    return manualBlueDays;
+  })();
+  return loading;
 }
 
 function weekdayForDateKey(dateKey) {
   return new Date(`${dateKey}T12:00:00`).getDay();
 }
 
-function decorateCalendarBlueDays() {
+async function toggleManualBlueDay(dateKey) {
+  const currentlyBlue = manualBlueDays.has(dateKey);
+  if (currentlyBlue) {
+    const { error } = await supabase.from('calendar_blue_days').delete().eq('day', dateKey);
+    if (error) return false;
+    manualBlueDays.delete(dateKey);
+  } else {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+    const { error } = await supabase.from('calendar_blue_days').insert({ day: dateKey, created_by: user.id });
+    if (error) return false;
+    manualBlueDays.add(dateKey);
+  }
+  return true;
+}
+
+async function decorateCalendarBlueDays() {
   const calendar = document.querySelector('.calendar');
   if (!calendar) return;
 
-  const manualBlueDays = loadManualBlueDays();
+  await loadManualBlueDays();
   const canEdit = Boolean(document.querySelector('.content .panel:not(.readonly)'));
 
   calendar.querySelectorAll('.day[data-day]').forEach(day => {
@@ -65,13 +88,12 @@ function decorateCalendarBlueDays() {
       const stop = event => event.stopPropagation();
       toggle.addEventListener('pointerdown', stop);
       toggle.addEventListener('pointerup', stop);
-      toggle.addEventListener('click', event => {
+      toggle.addEventListener('click', async event => {
         event.preventDefault();
         event.stopPropagation();
-        const days = loadManualBlueDays();
-        if (days.has(dateKey)) days.delete(dateKey);
-        else days.add(dateKey);
-        saveManualBlueDays(days);
+        toggle.disabled = true;
+        await toggleManualBlueDay(dateKey);
+        toggle.disabled = false;
         decorateCalendarBlueDays();
       });
       day.appendChild(toggle);
