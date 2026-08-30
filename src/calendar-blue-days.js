@@ -1,3 +1,5 @@
+import './calendar-blue-days.css';
+
 const BLUE_DAYS_STORAGE_KEY = 'k3paalbos-calendar-blue-days';
 
 function loadManualBlueDays() {
