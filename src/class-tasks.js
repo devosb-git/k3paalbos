@@ -19,7 +19,7 @@ async function loadData(){
  if(profile?.role==='teacher')requests.push(supabase.rpc('class_tasks_password_is_set'));
  const results=await Promise.all(requests);
  students=results[0].data||[];currentAssignments=results[1].data||[];currentSunshine=results[2].data||null;
- if(profile?.role==='teacher'){if(results[3]?.error){statusMessage=results[3].error.message;statusError=true;}else passwordIsSet=!!results[3].data;}
+ if(profile?.role==='teacher'){if(results[3]?.error){statusMessage=`Beveiligingscontrole mislukt: ${results[3].error.message}`;statusError=true;}else passwordIsSet=!!results[3].data;}
 }
 function studentName(id){return students.find(s=>s.id===id)?.name||'—'}
 function header(){const name=profile?.display_name||'Welkom';return `<header class="topbar"><div class="brand"><div class="fox">🦊</div><div><h1>De Vosjes</h1><p>Klastaken van de week</p></div></div><nav class="main-nav"><button class="nav-item" data-task-go="calendar"><span>📅</span><small>Kalender</small></button><button class="nav-item" data-task-go="week"><span>🗓️</span><small>Weekkalender</small></button><button class="nav-item" data-task-go="weather"><span>🌤️</span><small>Weer</small></button><button class="nav-item" data-task-go="clothing"><span>👕</span><small>Kleding</small></button><button class="nav-item active"><span>🎲</span><small>Klastaken</small></button></nav><div class="account">${name} <button id="tasks-logout">Uitloggen</button></div></header>`;}
@@ -35,7 +35,19 @@ function render(){
 function bind(canEdit){document.querySelector('#tasks-logout').onclick=()=>supabase.auth.signOut();document.querySelectorAll('[data-task-go]').forEach(b=>b.onclick=()=>go(b.dataset.taskGo));if(!canEdit)return;document.querySelector('#roll-tasks').onclick=rollTasks;document.querySelector('#save-students').onclick=saveStudents;document.querySelector('#set-reset-password')?.addEventListener('click',setResetPassword);document.querySelector('#change-password')?.addEventListener('click',changePassword);document.querySelector('#reset-tasks').onclick=resetAll;document.querySelector('#new-school-year').onclick=newSchoolYear;}
 function showStatus(message,error=false){statusMessage=message;statusError=error;render()}
 
-async function saveStudents(){const namesText=document.querySelector('#student-editor').value;const password=document.querySelector('#students-password').value;if(!password)return showStatus('Vul het beheerwachtwoord in om de leerlingenlijst op te slaan.',true);const {error}=await supabase.rpc('class_tasks_save_students',{p_password:password,p_names_text:namesText});if(error)return showStatus(error.message,true);await loadData();showStatus(`Leerlingenlijst opgeslagen (${students.length} leerlingen).`);}
+async function saveStudents(){
+ const namesText=document.querySelector('#student-editor').value;
+ const password=document.querySelector('#students-password').value;
+ if(!password)return showStatus('Vul het beheerwachtwoord in om de leerlingenlijst op te slaan.',true);
+ const {error}=await supabase.rpc('class_tasks_save_students',{p_password:password,p_names_text:namesText});
+ if(error)return showStatus(error.message,true);
+ const {data:verify,error:verifyError}=await supabase.from('class_students').select('id,name,active').eq('active',true).order('name');
+ if(verifyError)return showStatus(`Opslaan uitgevoerd, maar controle mislukt: ${verifyError.message}`,true);
+ students=verify||[];
+ const expectedCount=[...new Set(namesText.split(/\r?\n/).map(x=>x.trim().toLocaleLowerCase('nl')).filter(Boolean))].length;
+ if(students.length!==expectedCount)return showStatus(`Opslaan niet bevestigd: ${expectedCount} namen ingevoerd, maar ${students.length} actieve leerlingen teruggelezen.`,true);
+ showStatus(`✅ Leerlingenlijst opgeslagen: ${students.length} actieve leerlingen.`);
+}
 
 async function rollTasks(){
  if(students.length<2)return showStatus('Voeg eerst minstens twee leerlingen toe.',true);
