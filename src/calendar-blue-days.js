@@ -23,6 +23,12 @@ function isAutomaticBlueDay(dateKey) {
   return weekday === 0 || weekday === 3 || weekday === 6;
 }
 
+function updateToggle(toggle, manual) {
+  toggle.classList.toggle('active', manual);
+  toggle.setAttribute('aria-label', manual ? 'Feestdagmarkering verwijderen' : 'Als feestdag markeren');
+  toggle.title = manual ? 'Blauwe feestdagmarkering uitzetten' : 'Deze dag blauw markeren als feestdag';
+}
+
 function decorateCalendarBlueDays() {
   const calendar = document.querySelector('.calendar');
   if (!calendar) return;
@@ -39,36 +45,60 @@ function decorateCalendarBlueDays() {
     day.classList.toggle('calendar-blue-day', automatic || manual);
     day.classList.toggle('calendar-manual-blue-day', manual);
 
-    day.querySelector('.holiday-toggle')?.remove();
-    if (!canEdit || automatic) return;
+    let toggle = day.querySelector('.holiday-toggle');
 
-    const toggle = document.createElement('button');
-    toggle.type = 'button';
-    toggle.className = `holiday-toggle${manual ? ' active' : ''}`;
-    toggle.setAttribute('aria-label', manual ? 'Feestdagmarkering verwijderen' : 'Als feestdag markeren');
-    toggle.title = manual ? 'Blauwe feestdagmarkering uitzetten' : 'Deze dag blauw markeren als feestdag';
-    toggle.textContent = '●';
+    if (!canEdit || automatic) {
+      if (toggle) toggle.remove();
+      return;
+    }
 
-    const stop = event => event.stopPropagation();
-    toggle.addEventListener('pointerdown', stop);
-    toggle.addEventListener('pointerup', stop);
-    toggle.addEventListener('click', event => {
-      event.preventDefault();
-      event.stopPropagation();
-      const days = loadManualBlueDays();
-      if (days.has(dateKey)) days.delete(dateKey);
-      else days.add(dateKey);
-      saveManualBlueDays(days);
-      decorateCalendarBlueDays();
-    });
+    if (!toggle) {
+      toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'holiday-toggle';
+      toggle.textContent = '●';
 
-    day.appendChild(toggle);
+      const stop = event => event.stopPropagation();
+      toggle.addEventListener('pointerdown', stop);
+      toggle.addEventListener('pointerup', stop);
+      toggle.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        const currentDateKey = toggle.closest('.day[data-day]')?.dataset.day;
+        if (!currentDateKey) return;
+        const days = loadManualBlueDays();
+        if (days.has(currentDateKey)) days.delete(currentDateKey);
+        else days.add(currentDateKey);
+        saveManualBlueDays(days);
+        decorateCalendarBlueDays();
+      });
+
+      day.appendChild(toggle);
+    }
+
+    updateToggle(toggle, manual);
   });
 }
 
 const app = document.querySelector('#app');
 if (app) {
-  const observer = new MutationObserver(decorateCalendarBlueDays);
+  let scheduled = false;
+  const observer = new MutationObserver(mutations => {
+    const calendarChanged = mutations.some(mutation =>
+      [...mutation.addedNodes, ...mutation.removedNodes].some(node =>
+        node.nodeType === Node.ELEMENT_NODE &&
+        (node.matches?.('.calendar, .day[data-day]') || node.querySelector?.('.calendar, .day[data-day]'))
+      )
+    );
+
+    if (!calendarChanged || scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(() => {
+      scheduled = false;
+      decorateCalendarBlueDays();
+    });
+  });
+
   observer.observe(app, { childList: true, subtree: true });
   decorateCalendarBlueDays();
 }
