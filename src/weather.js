@@ -11,44 +11,64 @@ const weekDays=[
 ];
 
 const weatherGroups=[
-  {
-    id:'sun',
-    label:'Zon',
-    items:[
-      {id:'sunny',label:'Zon',image:new URL('./weather/sunny.svg',import.meta.url).href},
-      {id:'cloudy',label:'Bewolkt',image:new URL('./weather/cloudy.svg',import.meta.url).href},
-      {id:'partly-cloudy',label:'Licht bewolkt',image:new URL('./weather/partly-cloudy.svg',import.meta.url).href}
-    ]
-  },
-  {
-    id:'precipitation',
-    label:'Neerslag',
-    items:[
-      {id:'rain',label:'Regen',image:new URL('./weather/rain.svg',import.meta.url).href},
-      {id:'hail',label:'Hagel',image:new URL('./weather/hail.svg',import.meta.url).href},
-      {id:'snow',label:'Sneeuw',image:new URL('./weather/snow.svg',import.meta.url).href},
-      {id:'fog',label:'Mist',image:new URL('./weather/fog.svg',import.meta.url).href}
-    ]
-  },
-  {
-    id:'wind',
-    label:'Wind',
-    items:[
-      {id:'calm',label:'Windstil',emoji:'🪶'},
-      {id:'light',label:'Weinig',emoji:'🍃'},
-      {id:'strong',label:'Veel',emoji:'💨'},
-      {id:'very-strong',label:'Storm',emoji:'🌪️'}
-    ]
-  }
+  {id:'sun',label:'Zon',items:[
+    {id:'sunny',label:'Zon',image:new URL('./weather/sunny.svg',import.meta.url).href},
+    {id:'cloudy',label:'Bewolkt',image:new URL('./weather/cloudy.svg',import.meta.url).href},
+    {id:'partly-cloudy',label:'Licht bewolkt',image:new URL('./weather/partly-cloudy.svg',import.meta.url).href}
+  ]},
+  {id:'precipitation',label:'Neerslag',items:[
+    {id:'rain',label:'Regen',image:new URL('./weather/rain.svg',import.meta.url).href},
+    {id:'hail',label:'Hagel',image:new URL('./weather/hail.svg',import.meta.url).href},
+    {id:'snow',label:'Sneeuw',image:new URL('./weather/snow.svg',import.meta.url).href},
+    {id:'fog',label:'Mist',image:new URL('./weather/fog.svg',import.meta.url).href}
+  ]},
+  {id:'wind',label:'Wind',items:[
+    {id:'calm',label:'Windstil',emoji:'🪶'},
+    {id:'light',label:'Weinig',emoji:'🍃'},
+    {id:'strong',label:'Veel',emoji:'💨'},
+    {id:'very-strong',label:'Storm',emoji:'🌪️'}
+  ]}
 ];
 
-const storageKey='k3paalbos-weather-week-v1';
+const storageKeyPrefix='k3paalbos-weather-week-v2';
 let dragged=null;
 let activeNavigate=null;
+let currentState=emptyState();
 
 function emptyState(){return {days:{},weather:{}}}
-function loadState(){try{return {...emptyState(),...(JSON.parse(localStorage.getItem(storageKey))||{})}}catch{return emptyState()}}
-function saveState(state){localStorage.setItem(storageKey,JSON.stringify(state))}
+function weekStartKey(){
+  const d=new Date();
+  d.setHours(12,0,0,0);
+  const day=d.getDay();
+  d.setDate(d.getDate()+(day===0?-6:1-day));
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function localStorageKey(){return `${storageKeyPrefix}-${weekStartKey()}`}
+function loadLocalState(){try{return {...emptyState(),...(JSON.parse(localStorage.getItem(localStorageKey()))||{})}}catch{return emptyState()}}
+function saveLocalState(state){localStorage.setItem(localStorageKey(),JSON.stringify(state))}
+
+async function loadState(){
+  const fallback=loadLocalState();
+  try{
+    const {data:{user}}=await supabase.auth.getUser();
+    if(!user)return fallback;
+    const {data,error}=await supabase.from('weather_week_state').select('state').eq('week_start',weekStartKey()).maybeSingle();
+    if(error){console.warn('Weerweek kon niet uit Supabase worden geladen:',error.message);return fallback}
+    if(data?.state){saveLocalState(data.state);return {...emptyState(),...data.state}}
+  }catch(error){console.warn('Weerweek kon niet worden geladen:',error)}
+  return fallback;
+}
+
+async function saveState(state){
+  currentState=state;
+  saveLocalState(state);
+  try{
+    const {data:{user}}=await supabase.auth.getUser();
+    if(!user)return;
+    const {error}=await supabase.from('weather_week_state').upsert({week_start:weekStartKey(),state,updated_by:user.id,updated_at:new Date().toISOString()},{onConflict:'week_start'});
+    if(error)console.warn('Weerweek kon niet in Supabase worden opgeslagen:',error.message);
+  }catch(error){console.warn('Weerweek kon niet worden opgeslagen:',error)}
+}
 
 function itemFor(groupId,itemId){return weatherGroups.find(g=>g.id===groupId)?.items.find(i=>i.id===itemId)}
 function renderIcon(item,size='large'){
@@ -66,12 +86,16 @@ function addStyles(){
   document.head.appendChild(style);
 }
 
-export async function showWeather(navigate){activeNavigate=navigate;renderWeather()}
+export async function showWeather(navigate){
+  activeNavigate=navigate;
+  currentState=await loadState();
+  renderWeather();
+}
 
 function renderWeather(){
   addStyles();
   document.title='Weer | De Vosjes';
-  const state=loadState();
+  const state=currentState;
   const oldAccount=document.querySelector('.account');
   const accountName=oldAccount?.childNodes?.[0]?.textContent?.trim()||'Welkom';
 
@@ -128,7 +152,7 @@ function renderWeather(){
 
   document.querySelectorAll('.weather-remove').forEach(button=>button.onclick=event=>{
     event.stopPropagation();
-    const state=loadState();
+    const state=structuredClone(currentState);
     const day=button.dataset.removeDay,category=button.dataset.removeCategory;
     if(state.weather?.[day])delete state.weather[day][category];
     saveState(state);
@@ -138,7 +162,7 @@ function renderWeather(){
 
 function placeDay(slot,day){
   if(!day)return;
-  const state=loadState();
+  const state=structuredClone(currentState);
   Object.keys(state.days).forEach(key=>{if(state.days[key]?.id===day.id)delete state.days[key]});
   state.days[slot]=day;
   saveState(state);
@@ -146,7 +170,7 @@ function placeDay(slot,day){
 }
 
 function placeWeather(day,category,itemId){
-  const state=loadState();
+  const state=structuredClone(currentState);
   state.weather[day]=state.weather[day]||{};
   state.weather[day][category]=itemId;
   saveState(state);
