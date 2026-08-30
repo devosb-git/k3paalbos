@@ -1,0 +1,19 @@
+/* Houd de Kalender visueel gelijk aan de Weekkalender. */
+.content {
+  grid-template-columns: 320px 1fr;
+}
+
+/* De categorieën in Kalender gebruiken dezelfde paletbreedte als Weekkalender. */
+.panel .calendar-activity-groups {
+  width: 100%;
+}
+
+.panel .calendar-activity-groups .activity-palette {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .content {
+    grid-template-columns: 1fr;
+  }
+}
