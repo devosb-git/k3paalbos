@@ -1,3 +1,4 @@
+import './clothing-temperature-size.css';
 import { createClient } from '@supabase/supabase-js';
 import tshirt from './clothing/tshirt.svg';
 import sweater from './clothing/sweater.svg';
