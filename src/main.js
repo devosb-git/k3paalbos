@@ -3,7 +3,7 @@ import './style.css';
 import { showWeather } from './weather.js';
 import { showClothing } from './clothing.js';
 const supabase=createClient(import.meta.env.VITE_SUPABASE_URL,import.meta.env.VITE_SUPABASE_ANON_KEY);
-const calendarIcons=[['📖','Bib'],['🚌','Uitstap'],['🤸','Turnen'],['🏊','Zwemmen'],['⭐','Speciale act.'],['🎂','Verjaardag']].map(([icon,label])=>({icon,label}));
+const calendarIcons=[['🌳','Buiten'],['🏅','Sportdag'],['🏊','Zwemmen'],['🗣️','Gespreksmoment'],['🚦','Verkeer'],['🎭','Toneel'],['🎬','Film'],['🗄️','Bib'],['🚌','Bus'],['🚶','Op stap'],['⭐','Speciale act.'],['🌷','Moederdag'],['💙','Vaderdag'],['🎉','Feest'],['🎄','Kerstdag'],['🐣','Pasen'],['👑','Sinterklaas'],['🎂','Verjaardag']].map(([icon,label])=>({icon,label}));
 const weekActivityGroups=[
   {name:'Bewegen & ontspannen',items:[['🌳','Buiten'],['🏃','Bewegen'],['🤸','Turnen'],['🏊','Zwemmen'],['🧘','Yoga'],['🏅','Sportdag']]},
   {name:'Samen & zorg',items:[['🤲','Hartje'],['❤️','Zorg'],['👥','Kleine groep'],['💬','Babbelronde'],['🗣️','Gespreksmoment']]},
