@@ -78,7 +78,7 @@ function render(){
     return `<article class="task-card"><div class="task-icon">${task.icon}</div><div><h3>${task.label}</h3><div class="task-students">${[0,1].map(i=>assigned[i]?`<span class="student-chip">${studentName(assigned[i].student_id)}</span>`:'<span class="student-chip empty">Nog te verdelen</span>').join('')}</div></div></article>`;
   }).join('');
   const roster=students.map(s=>s.name).join('\n');
-  app().innerHTML=`<main class="page tasks-page">${header()}<section class="tasks-board"><div class="tasks-title"><div><h2>🎲 Klastaken</h2><p>De dobbelsteen verdeelt elke taak eerlijk over twee kinderen.</p></div>${canEdit?'<button class="dice-button" id="roll-tasks"><span>🎲</span> Dobbelen!</button>':''}</div><section class="sunshine-card"><div class="sunshine-icon">☀️</div><div><h3>Zonnetje van de week</h3><div class="sunshine-name">${currentSunshine?studentName(currentSunshine.student_id):'Nog te kiezen'}</div></div></section><div class="tasks-grid">${taskCards}</div>${canEdit?`<details class="tasks-admin"><summary>⚙️ Beheer klastaken</summary><div class="tasks-admin-grid"><section class="admin-card"><h3>Leerlingen</h3><p>Eén naam per regel. Namen die je verwijdert worden inactief maar hun geschiedenis blijft bewaard.</p><textarea class="student-editor" id="student-editor" placeholder="Anna\nBram\n...">${roster}</textarea><div class="admin-row"><button class="admin-button" id="save-students">Leerlingen opslaan</button></div></section><section class="admin-card"><h3>Resetbeveiliging</h3><p>Stel een resetwachtwoord in. Een volledige reset wist de taakgeschiedenis en het zonnetje.</p><div class="admin-row"><input id="reset-new-password" type="password" placeholder="Nieuw resetwachtwoord"><button class="admin-button" id="set-reset-password">Wachtwoord instellen</button></div><div class="admin-row" style="margin-top:12px"><input id="reset-password" type="password" placeholder="Resetwachtwoord"><button class="danger-button" id="reset-tasks">Volledig resetten</button></div></section></div></details>`:''}${statusMessage?`<div class="tasks-status ${statusError?'tasks-error':''}">${statusMessage}</div>`:''}</section></main>`;
+  app().innerHTML=`<main class="page tasks-page">${header()}<section class="tasks-board"><div class="tasks-title"><div><h2>🎲 Klastaken</h2><p>De dobbelsteen verdeelt elke taak eerlijk over twee kinderen.</p></div>${canEdit?'<button class="dice-button" id="roll-tasks"><span>🎲</span> Dobbelen!</button>':''}</div><section class="sunshine-card"><div class="sunshine-icon">☀️</div><div><h3>Zonnetje van de week</h3><div class="sunshine-name">${currentSunshine?studentName(currentSunshine.student_id):'Nog te kiezen'}</div></div></section><div class="tasks-grid">${taskCards}</div>${canEdit?`<details class="tasks-admin"><summary>⚙️ Beheer klastaken</summary><div class="tasks-admin-grid"><section class="admin-card"><h3>Leerlingen</h3><p>Eén naam per regel. Namen die je verwijdert worden inactief maar hun geschiedenis blijft bewaard.</p><textarea class="student-editor" id="student-editor" placeholder="Anna\nBram\n...">${roster}</textarea><div class="admin-row"><button class="admin-button" id="save-students">Leerlingen opslaan</button></div></section><section class="admin-card"><h3>Resetbeveiliging</h3><p>De gewone reset wist alleen de taakgeschiedenis. Gebruik Nieuw schooljaar om ook de volledige leerlingenlijst definitief te verwijderen.</p><div class="admin-row"><input id="reset-new-password" type="password" placeholder="Nieuw resetwachtwoord"><button class="admin-button" id="set-reset-password">Wachtwoord instellen</button></div><div class="admin-row" style="margin-top:12px"><input id="reset-password" type="password" placeholder="Resetwachtwoord"><button class="danger-button" id="reset-tasks">Taakgeschiedenis resetten</button></div><div class="admin-row" style="margin-top:12px"><input id="school-year-password" type="password" placeholder="Resetwachtwoord"><button class="danger-button" id="new-school-year">🎓 Nieuw schooljaar</button></div><p style="margin-top:10px"><strong>Nieuw schooljaar</strong> wist alle leerlingen, taakverdelingen, taakgeschiedenis en zonnetjes. Deze actie kan niet ongedaan worden gemaakt.</p></section></div></details>`:''}${statusMessage?`<div class="tasks-status ${statusError?'tasks-error':''}">${statusMessage}</div>`:''}</section></main>`;
   bind(canEdit);
 }
 
@@ -90,6 +90,7 @@ function bind(canEdit){
   document.querySelector('#save-students').onclick=saveStudents;
   document.querySelector('#set-reset-password').onclick=setResetPassword;
   document.querySelector('#reset-tasks').onclick=resetAll;
+  document.querySelector('#new-school-year').onclick=newSchoolYear;
 }
 
 async function saveStudents(){
@@ -158,10 +159,20 @@ async function setResetPassword(){
 async function resetAll(){
   const value=document.querySelector('#reset-password').value;
   if(!value)return showStatus('Vul eerst het resetwachtwoord in.',true);
-  if(!confirm('Zeker? Dit wist de volledige taakgeschiedenis en alle zonnetjes.'))return;
+  if(!confirm('Zeker? Dit wist de volledige taakgeschiedenis en alle zonnetjes. De leerlingenlijst blijft behouden.'))return;
   const {error}=await supabase.rpc('class_tasks_reset',{p_password:value});
   if(error)return showStatus(error.message,true);
-  await loadData();showStatus('Alle klastaken en geschiedenis zijn volledig gereset.');
+  await loadData();showStatus('De taakgeschiedenis is gereset. De leerlingenlijst bleef behouden.');
+}
+
+async function newSchoolYear(){
+  const value=document.querySelector('#school-year-password').value;
+  if(!value)return showStatus('Vul eerst het resetwachtwoord in.',true);
+  if(!confirm('Nieuw schooljaar starten? Dit verwijdert ALLE leerlingen en hun volledige taakgeschiedenis definitief.'))return;
+  if(!confirm('Laatste controle: wil je de volledige oude klas echt verwijderen? Deze actie kan niet ongedaan worden gemaakt.'))return;
+  const {error}=await supabase.rpc('class_tasks_new_school_year',{p_password:value});
+  if(error)return showStatus(error.message,true);
+  await loadData();showStatus('🎓 Nieuw schooljaar gestart. De leerlingenlijst en alle oude klastaken zijn gewist.');
 }
 
 async function openTasks(){
