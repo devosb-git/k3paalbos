@@ -1,5 +1,5 @@
 -- Klastaken: leerlingen, wekelijkse toewijzingen en zonnetje van de week.
-create extension if not exists pgcrypto;
+create extension if not exists pgcrypto with schema extensions;
 
 create table if not exists public.class_students (
   id uuid primary key default gen_random_uuid(),
@@ -80,7 +80,7 @@ drop policy if exists "no direct settings access" on public.class_task_settings;
 
 create or replace function public.class_tasks_set_reset_password(p_new_password text)
 returns boolean
-language plpgsql security definer set search_path=public
+language plpgsql security definer set search_path=public,extensions
 as $$
 begin
   if not exists(select 1 from public.profiles p where p.id=auth.uid() and p.active=true and p.role='teacher') then
@@ -90,7 +90,7 @@ begin
     raise exception 'Wachtwoord moet minstens 4 tekens bevatten';
   end if;
   update public.class_task_settings
-    set reset_password_hash=crypt(p_new_password, gen_salt('bf')), updated_at=now(), updated_by=auth.uid()
+    set reset_password_hash=extensions.crypt(p_new_password, extensions.gen_salt('bf')), updated_at=now(), updated_by=auth.uid()
     where id=1;
   return true;
 end;
@@ -98,7 +98,7 @@ $$;
 
 create or replace function public.class_tasks_reset(p_password text)
 returns boolean
-language plpgsql security definer set search_path=public
+language plpgsql security definer set search_path=public,extensions
 as $$
 declare v_hash text;
 begin
@@ -109,7 +109,7 @@ begin
   if v_hash is null then
     raise exception 'Resetwachtwoord is nog niet ingesteld';
   end if;
-  if crypt(coalesce(p_password,''), v_hash) <> v_hash then
+  if extensions.crypt(coalesce(p_password,''), v_hash) <> v_hash then
     raise exception 'Verkeerd resetwachtwoord';
   end if;
   delete from public.class_task_assignments;
@@ -119,10 +119,9 @@ end;
 $$;
 
 -- Nieuw schooljaar: wist ook de volledige leerlingenlijst.
--- Door ON DELETE CASCADE verdwijnen eventuele gekoppelde taak- en zonnetjegegevens automatisch.
 create or replace function public.class_tasks_new_school_year(p_password text)
 returns boolean
-language plpgsql security definer set search_path=public
+language plpgsql security definer set search_path=public,extensions
 as $$
 declare v_hash text;
 begin
@@ -133,7 +132,7 @@ begin
   if v_hash is null then
     raise exception 'Resetwachtwoord is nog niet ingesteld';
   end if;
-  if crypt(coalesce(p_password,''), v_hash) <> v_hash then
+  if extensions.crypt(coalesce(p_password,''), v_hash) <> v_hash then
     raise exception 'Verkeerd resetwachtwoord';
   end if;
   delete from public.class_task_assignments;
