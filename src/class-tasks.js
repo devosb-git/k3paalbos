@@ -10,8 +10,8 @@ const mondayKey=()=>{const d=new Date();const day=d.getDay()||7;d.setDate(d.getD
 const shuffle=a=>a.map(v=>({v,r:Math.random()})).sort((a,b)=>a.r-b.r).map(x=>x.v);
 
 async function getProfile(){const {data:{user}}=await supabase.auth.getUser();if(!user)return null;const {data}=await supabase.from('profiles').select('id,display_name,role,active').eq('id',user.id).maybeSingle();return data?.active?data:null;}
-function captureNavigation(){navCallbacks={};document.querySelectorAll('.main-nav .nav-item').forEach(button=>{const label=button.querySelector('small')?.textContent?.trim();const page=button.dataset.page||({Kalender:'calendar',Weekkalender:'week',Weer:'weather',Kleding:'clothing'})[label];if(page&&page!=='tasks'&&typeof button.onclick==='function')navCallbacks[page]=button.onclick;});}
-function go(page){pageActive=false;const fn=navCallbacks[page];if(fn){fn(new Event('click'));return;}location.reload();}
+function captureNavigation(){navCallbacks={};document.querySelectorAll('.main-nav .nav-item[data-page]').forEach(button=>{const page=button.dataset.page;if(page&&page!=='tasks'&&typeof button.onclick==='function')navCallbacks[page]=button.onclick;});}
+function go(page){pageActive=false;const fn=navCallbacks[page];if(typeof fn==='function'){fn.call(null,new Event('click'));return;}const liveButton=document.querySelector(`.main-nav .nav-item[data-page="${page}"]`);if(liveButton){liveButton.click();return;}console.error(`Geen navigatiecallback gevonden voor ${page}`);}
 
 async function loadData(){
  const week=mondayKey();
