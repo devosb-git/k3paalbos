@@ -46,18 +46,26 @@ begin
  return true;
 end; $$;
 
-create or replace function public.class_tasks_save_students(p_password text,p_names text[]) returns boolean language plpgsql security definer set search_path=public,extensions as $$
+-- Oude array-versie verwijderen zodat PostgREST geen verkeerde overload kan kiezen.
+drop function if exists public.class_tasks_save_students(text,text[]);
+create or replace function public.class_tasks_save_students(p_password text,p_names_text text) returns boolean language plpgsql security definer set search_path=public,extensions as $$
 declare v_hash text; v_name text;
 begin
  if not exists(select 1 from public.profiles p where p.id=auth.uid() and p.active=true and p.role='teacher') then raise exception 'Geen toegang'; end if;
  select reset_password_hash into v_hash from public.class_task_settings where id=1;
  if v_hash is null then raise exception 'Beheerwachtwoord is nog niet ingesteld'; end if;
  if extensions.crypt(coalesce(p_password,''),v_hash)<>v_hash then raise exception 'Verkeerd beheerwachtwoord'; end if;
+
  update public.class_students set active=false where active=true;
- foreach v_name in array coalesce(p_names,array[]::text[]) loop
-   v_name:=btrim(v_name); if v_name<>'' then
-     insert into public.class_students(name,active) values(v_name,true)
-     on conflict ((lower(name))) do update set name=excluded.name,active=true;
+ for v_name in
+   select distinct btrim(x)
+   from regexp_split_to_table(coalesce(p_names_text,''), E'\\r?\\n+') as x
+   where btrim(x)<>''
+ loop
+   if exists(select 1 from public.class_students s where lower(s.name)=lower(v_name)) then
+     update public.class_students set name=v_name,active=true where lower(name)=lower(v_name);
+   else
+     insert into public.class_students(name,active) values(v_name,true);
    end if;
  end loop;
  return true;
@@ -91,6 +99,6 @@ end; $$;
 grant execute on function public.class_tasks_password_is_set() to authenticated;
 grant execute on function public.class_tasks_set_reset_password(text) to authenticated;
 grant execute on function public.class_tasks_change_password(text,text) to authenticated;
-grant execute on function public.class_tasks_save_students(text,text[]) to authenticated;
+grant execute on function public.class_tasks_save_students(text,text) to authenticated;
 grant execute on function public.class_tasks_reset(text) to authenticated;
 grant execute on function public.class_tasks_new_school_year(text) to authenticated;
