@@ -18,17 +18,6 @@ function weekdayForDateKey(dateKey) {
   return new Date(`${dateKey}T12:00:00`).getDay();
 }
 
-function isAutomaticBlueDay(dateKey) {
-  const weekday = weekdayForDateKey(dateKey);
-  return weekday === 0 || weekday === 3 || weekday === 6;
-}
-
-function updateToggle(toggle, manual) {
-  toggle.classList.toggle('active', manual);
-  toggle.setAttribute('aria-label', manual ? 'Feestdagmarkering verwijderen' : 'Als feestdag markeren');
-  toggle.title = manual ? 'Blauwe feestdagmarkering uitzetten' : 'Deze dag blauw markeren als feestdag';
-}
-
 function decorateCalendarBlueDays() {
   const calendar = document.querySelector('.calendar');
   if (!calendar) return;
@@ -40,15 +29,31 @@ function decorateCalendarBlueDays() {
     const dateKey = day.dataset.day;
     if (!dateKey) return;
 
-    const automatic = isAutomaticBlueDay(dateKey);
+    const weekday = weekdayForDateKey(dateKey);
+    const isWednesday = weekday === 3;
+    const isWeekend = weekday === 0 || weekday === 6;
     const manual = manualBlueDays.has(dateKey);
-    day.classList.toggle('calendar-blue-day', automatic || manual);
+
+    day.classList.toggle('calendar-weekend', isWeekend && !manual);
+    day.classList.toggle('calendar-wednesday', isWednesday && !manual);
+    day.classList.toggle('calendar-blue-day', isWeekend || manual);
     day.classList.toggle('calendar-manual-blue-day', manual);
 
-    let toggle = day.querySelector('.holiday-toggle');
+    let noSchool = day.querySelector('.wednesday-no-school');
+    if (isWednesday && !manual) {
+      if (!noSchool) {
+        noSchool = document.createElement('div');
+        noSchool.className = 'wednesday-no-school';
+        noSchool.innerHTML = '<span>🌙</span><small>Geen school</small>';
+        day.appendChild(noSchool);
+      }
+    } else {
+      noSchool?.remove();
+    }
 
-    if (!canEdit || automatic) {
-      if (toggle) toggle.remove();
+    let toggle = day.querySelector('.holiday-toggle');
+    if (!canEdit || isWeekend) {
+      toggle?.remove();
       return;
     }
 
@@ -57,48 +62,37 @@ function decorateCalendarBlueDays() {
       toggle.type = 'button';
       toggle.className = 'holiday-toggle';
       toggle.textContent = '●';
-
       const stop = event => event.stopPropagation();
       toggle.addEventListener('pointerdown', stop);
       toggle.addEventListener('pointerup', stop);
       toggle.addEventListener('click', event => {
         event.preventDefault();
         event.stopPropagation();
-        const currentDateKey = toggle.closest('.day[data-day]')?.dataset.day;
-        if (!currentDateKey) return;
         const days = loadManualBlueDays();
-        if (days.has(currentDateKey)) days.delete(currentDateKey);
-        else days.add(currentDateKey);
+        if (days.has(dateKey)) days.delete(dateKey);
+        else days.add(dateKey);
         saveManualBlueDays(days);
         decorateCalendarBlueDays();
       });
-
       day.appendChild(toggle);
     }
 
-    updateToggle(toggle, manual);
+    toggle.classList.toggle('active', manual);
+    toggle.setAttribute('aria-label', manual ? 'Feestdagmarkering verwijderen' : 'Als feestdag markeren');
+    toggle.title = manual ? 'Blauwe feestdagmarkering uitzetten' : 'Deze dag blauw markeren als feestdag';
   });
 }
 
 const app = document.querySelector('#app');
 if (app) {
-  let scheduled = false;
   const observer = new MutationObserver(mutations => {
     const calendarChanged = mutations.some(mutation =>
       [...mutation.addedNodes, ...mutation.removedNodes].some(node =>
-        node.nodeType === Node.ELEMENT_NODE &&
-        (node.matches?.('.calendar, .day[data-day]') || node.querySelector?.('.calendar, .day[data-day]'))
+        node.nodeType === 1 && (node.matches?.('.calendar, .day') || node.querySelector?.('.calendar, .day'))
       )
     );
-
-    if (!calendarChanged || scheduled) return;
-    scheduled = true;
-    requestAnimationFrame(() => {
-      scheduled = false;
-      decorateCalendarBlueDays();
-    });
+    if (calendarChanged) decorateCalendarBlueDays();
   });
-
   observer.observe(app, { childList: true, subtree: true });
   decorateCalendarBlueDays();
 }
