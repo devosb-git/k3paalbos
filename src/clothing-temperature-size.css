@@ -1,0 +1,46 @@
+/* Maak de temperatuurkeuzes zo groot als de illustraties zelf. */
+.temp-options{
+  align-items:center;
+}
+
+.temp-option{
+  width:fit-content;
+  min-height:0;
+  padding:4px;
+  margin:0 auto;
+  border-radius:14px;
+}
+
+.temp-option .temp-image{
+  width:190px;
+  height:250px;
+  max-width:none;
+  max-height:none;
+  object-fit:contain;
+}
+
+.temp-option.selected{
+  background:#e8f4e7;
+  box-shadow:0 0 0 4px #4f9a61;
+}
+
+@media(max-width:1100px){
+  .temp-option .temp-image{
+    width:160px;
+    height:215px;
+  }
+}
+
+@media(max-width:900px){
+  .temp-option .temp-image{
+    width:170px;
+    height:225px;
+  }
+}
+
+@media(max-width:560px){
+  .temp-option .temp-image{
+    width:145px;
+    height:195px;
+  }
+}
