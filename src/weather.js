@@ -1,10 +1,168 @@
 import { createClient } from '@supabase/supabase-js';
+
 const supabase=createClient(import.meta.env.VITE_SUPABASE_URL,import.meta.env.VITE_SUPABASE_ANON_KEY);
-const weatherOptions=[['sunny','Zonnig'],['partly-cloudy','Licht bewolkt'],['cloudy','Bewolkt'],['rain','Regen'],['heavy-rain','Harde regen'],['thunderstorm','Onweer'],['wind','Wind'],['snow','Sneeuw'],['fog','Mist'],['hail','Hagel'],['rainbow','Regenboog'],['storm','Storm']];
-const weatherImages={sunny:new URL('./weather/sunny.svg',import.meta.url).href,'partly-cloudy':new URL('./weather/partly-cloudy.svg',import.meta.url).href,cloudy:new URL('./weather/cloudy.svg',import.meta.url).href,rain:new URL('./weather/rain.svg',import.meta.url).href,'heavy-rain':new URL('./weather/heavy-rain.svg',import.meta.url).href,thunderstorm:new URL('./weather/thunderstorm.svg',import.meta.url).href,wind:new URL('./weather/wind.svg',import.meta.url).href,snow:new URL('./weather/snow.svg',import.meta.url).href,fog:new URL('./weather/fog.svg',import.meta.url).href,hail:new URL('./weather/hail.svg',import.meta.url).href,rainbow:new URL('./weather/rainbow.svg',import.meta.url).href,storm:new URL('./weather/storm.svg',import.meta.url).href};
-const weatherKey='k3paalbos-weather-today';let selected='';let loaded=false;const todayKey=()=>new Date().toISOString().slice(0,10);
-async function loadWeather(){if(loaded)return;try{const {data}=await supabase.from('weather_daily').select('weather_type').eq('weather_date',todayKey()).maybeSingle();if(data?.weather_type)selected=data.weather_type}catch{}if(!selected)selected=localStorage.getItem(weatherKey)||'';loaded=true}
-async function saveWeather(label,navigate){selected=label;localStorage.setItem(weatherKey,label);const {data:{user}}=await supabase.auth.getUser();if(user){const {error}=await supabase.from('weather_daily').upsert({weather_date:todayKey(),weather_type:label,updated_by:user.id,updated_at:new Date().toISOString()},{onConflict:'weather_date'});if(error)console.warn('Weer kon niet in Supabase worden opgeslagen:',error.message)}renderWeather(navigate)}
-function addStyles(){if(document.getElementById('weather-styles'))return;const s=document.createElement('style');s.id='weather-styles';s.textContent=`.weather-page{min-height:100vh}.weather-card{max-width:1500px;margin:0 auto;background:#fff;border:2px solid #dce9db;border-radius:24px;box-shadow:0 8px 24px #234c2712;padding:28px}.weather-header{display:flex;align-items:center;gap:18px;margin-bottom:25px}.weather-header .weather-fox{width:62px;height:62px;display:grid;place-items:center;background:#fff0df;border-radius:50%;font-size:38px}.weather-header h2{color:#285d39;font-size:clamp(28px,4vw,40px);margin:0}.weather-header p{color:#718176;margin:5px 0 0}.weather-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.weather-option{border:3px solid #e1eadf;background:#fbfdf9;border-radius:20px;min-height:165px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:.15s;touch-action:manipulation;cursor:pointer}.weather-option:hover{background:#f1f8ef;transform:translateY(-2px)}.weather-option.selected{border-color:#4f9a61;background:#e8f4e7;box-shadow:0 0 0 4px #d7ecd5}.weather-option img{width:105px;height:105px;object-fit:contain}.weather-option small{font-size:15px;font-weight:bold;color:#496153;text-align:center}.weather-selected{margin-top:22px;text-align:center;padding:13px;border-radius:15px;background:#f5f9f2;color:#55705f;font-size:15px}@media(max-width:700px){.weather-card{padding:16px;border-radius:22px}.weather-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.weather-option{min-height:145px}.weather-option img{width:82px;height:82px}.weather-option small{font-size:12px}}@media(max-width:430px){.weather-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.weather-option{min-height:145px}}`;document.head.appendChild(s)}
-export async function showWeather(navigate){await loadWeather();renderWeather(navigate)}
-function renderWeather(navigate){addStyles();document.title='Weer | De Vosjes';const oldAccount=document.querySelector('.account');const accountName=oldAccount?.childNodes?.[0]?.textContent?.trim()||'Welkom';document.querySelector('#app').innerHTML=`<main class="page weather-page"><header class="topbar"><div class="brand"><div class="fox">🦊</div><div><h1>De Vosjes</h1><p>Hoe is het weer vandaag?</p></div></div><nav class="main-nav"><button class="nav-item" id="weather-calendar"><span>📅</span><small>Kalender</small></button><button class="nav-item" id="weather-week"><span>🗓️</span><small>Weekkalender</small></button><button class="nav-item active"><span>🌤️</span><small>Weer</small></button><button class="nav-item" id="weather-clothing"><span>👕</span><small>Kleding</small></button></nav><div class="account">${accountName} <button id="weather-logout">Uitloggen</button></div></header><section class="weather-card"><div class="weather-header"><div class="weather-fox">🦊</div><div><h2>Hoe is het weer vandaag?</h2><p>Kies samen het pictogram dat het beste bij buiten past.</p></div></div><div class="weather-grid">${weatherOptions.map(([id,label])=>`<button class="weather-option ${selected===label?'selected':''}" data-weather="${label}"><img src="${weatherImages[id]}" alt="${label}"><small>${label}</small></button>`).join('')}</div>${selected?`<div class="weather-selected">Vandaag is het <strong>${selected.toLowerCase()}</strong>. 🦊</div>`:'<div class="weather-selected">Kies een pictogram hierboven.</div>'}</section></main>`;document.querySelector('#weather-logout').onclick=()=>supabase.auth.signOut();document.querySelector('#weather-calendar').onclick=()=>navigate('calendar');document.querySelector('#weather-week').onclick=()=>navigate('week');document.querySelector('#weather-clothing').onclick=()=>navigate('clothing');document.querySelectorAll('.weather-option').forEach(b=>b.onclick=()=>saveWeather(b.dataset.weather,navigate))}
+
+const weekDays=[
+  {id:1,name:'Maandag'},
+  {id:2,name:'Dinsdag'},
+  {id:3,name:'Woensdag'},
+  {id:4,name:'Donderdag'},
+  {id:5,name:'Vrijdag'}
+];
+
+const weatherGroups=[
+  {
+    id:'sun',
+    label:'Zon',
+    items:[
+      {id:'sunny',label:'Zon',image:new URL('./weather/sunny.svg',import.meta.url).href},
+      {id:'cloudy',label:'Bewolkt',image:new URL('./weather/cloudy.svg',import.meta.url).href},
+      {id:'partly-cloudy',label:'Licht bewolkt',image:new URL('./weather/partly-cloudy.svg',import.meta.url).href}
+    ]
+  },
+  {
+    id:'precipitation',
+    label:'Neerslag',
+    items:[
+      {id:'rain',label:'Regen',image:new URL('./weather/rain.svg',import.meta.url).href},
+      {id:'hail',label:'Hagel',image:new URL('./weather/hail.svg',import.meta.url).href},
+      {id:'snow',label:'Sneeuw',image:new URL('./weather/snow.svg',import.meta.url).href},
+      {id:'fog',label:'Mist',image:new URL('./weather/fog.svg',import.meta.url).href}
+    ]
+  },
+  {
+    id:'wind',
+    label:'Wind',
+    items:[
+      {id:'calm',label:'Windstil',emoji:'🪶'},
+      {id:'light',label:'Weinig',emoji:'🍃'},
+      {id:'strong',label:'Veel',emoji:'💨'},
+      {id:'very-strong',label:'Heel veel',emoji:'🌪️'}
+    ]
+  }
+];
+
+const storageKey='k3paalbos-weather-week-v1';
+let dragged=null;
+let activeNavigate=null;
+
+function emptyState(){return {days:{},weather:{}}}
+function loadState(){try{return {...emptyState(),...(JSON.parse(localStorage.getItem(storageKey))||{})}}catch{return emptyState()}}
+function saveState(state){localStorage.setItem(storageKey,JSON.stringify(state))}
+
+function itemFor(groupId,itemId){return weatherGroups.find(g=>g.id===groupId)?.items.find(i=>i.id===itemId)}
+function renderIcon(item,size='large'){
+  if(item.image)return `<img class="weather-picto ${size}" src="${item.image}" alt="${item.label}">`;
+  return `<span class="weather-emoji ${size}">${item.emoji}</span>`;
+}
+
+function addStyles(){
+  if(document.getElementById('weather-table-styles'))return;
+  const style=document.createElement('style');
+  style.id='weather-table-styles';
+  style.textContent=`
+    .weather-page{min-height:100vh}.weather-board{max-width:1500px;margin:0 auto;background:#fff;border:2px solid #dce9db;border-radius:24px;box-shadow:0 8px 24px #234c2712;padding:22px}.weather-title{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}.weather-title h2{color:#285d39;font-size:30px;margin:0}.weather-title p{color:#718176;font-size:14px;margin:5px 0 0}.weather-clear{border:2px solid #e6aaaa;background:#fff;color:#b44f4f;border-radius:13px;padding:9px 13px;font-weight:bold}.weather-table-wrap{overflow-x:auto}.weather-table{display:grid;grid-template-columns:180px repeat(5,minmax(150px,1fr));min-width:950px;border:2px solid #dce9db;border-radius:18px;overflow:hidden}.weather-corner,.weather-day-cell,.weather-row-label,.weather-drop-cell{border-right:1px solid #dce9db;border-bottom:1px solid #dce9db}.weather-corner{background:#f5f9f2;padding:14px;display:flex;align-items:center;justify-content:center;color:#58705e;font-weight:bold}.weather-day-cell{min-height:86px;background:#eef8ec;padding:10px;display:flex;align-items:center;justify-content:center}.weather-day-cell.over{background:#dff0db}.weather-day-token{border:2px solid #b8d8b5;background:#fff;border-radius:13px;padding:8px 12px;display:flex;align-items:center;gap:9px;font-weight:bold;color:#284a33;touch-action:none}.weather-day-token span{width:30px;height:30px;background:#eef8ec;border-radius:8px;display:grid;place-items:center}.weather-empty-day{border:2px dashed #b7cfb4;border-radius:10px;padding:9px;color:#799080;font-size:13px}.weather-row-label{background:#fbfdf9;padding:12px;display:flex;flex-direction:column;gap:9px}.weather-row-label h3{margin:0;color:#285d39;font-size:18px}.weather-palette{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.weather-palette-item{border:2px solid #e1e9df;background:#fff;border-radius:12px;min-height:72px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;touch-action:none}.weather-palette-item small{font-size:10px;color:#55705f;text-align:center}.weather-picto.large{width:48px;height:48px;object-fit:contain}.weather-picto.small{width:55px;height:55px;object-fit:contain}.weather-emoji.large{font-size:35px}.weather-emoji.small{font-size:37px}.weather-drop-cell{min-height:142px;padding:10px;background:#fff;display:flex;align-items:center;justify-content:center;position:relative}.weather-drop-cell.over{background:#edf8ea;box-shadow:inset 0 0 0 3px #72ae79}.weather-placed{width:100%;height:100%;min-height:110px;border:2px solid #e1e9df;border-radius:14px;background:#fbfdf9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;position:relative}.weather-placed strong{font-size:12px;color:#45614e;text-align:center}.weather-remove{position:absolute;right:6px;top:6px;border:0;background:#fff;color:#9b7a69;width:24px;height:24px;border-radius:50%;padding:0}.weather-drop-hint{color:#8b9a90;font-size:12px;border:2px dashed #cbd9c8;border-radius:10px;padding:10px;text-align:center}.weather-day-palette-bottom{margin-top:16px;padding-top:14px;border-top:2px solid #edf2eb}.weather-day-palette-bottom h3{margin:0;color:#285d39;font-size:18px}.weather-day-palette-bottom p{color:#718176;font-size:13px;margin:3px 0 10px}.weather-day-palette-list{display:flex;gap:8px;flex-wrap:wrap}@media(max-width:700px){.weather-board{padding:12px}.weather-title{align-items:flex-start}.weather-table{grid-template-columns:150px repeat(5,145px);min-width:875px}.weather-row-label{padding:8px}.weather-palette-item{min-height:64px}.weather-picto.large{width:40px;height:40px}}
+  `;
+  document.head.appendChild(style);
+}
+
+export async function showWeather(navigate){activeNavigate=navigate;renderWeather()}
+
+function renderWeather(){
+  addStyles();
+  document.title='Weer | De Vosjes';
+  const state=loadState();
+  const oldAccount=document.querySelector('.account');
+  const accountName=oldAccount?.childNodes?.[0]?.textContent?.trim()||'Welkom';
+
+  const headerCells=weekDays.map(slot=>{
+    const placed=state.days[slot.id];
+    return `<div class="weather-day-cell" data-day-slot="${slot.id}">${placed?`<button class="weather-day-token" draggable="true" data-day-id="${placed.id}"><span>${placed.id}</span>${placed.name}</button>`:'<div class="weather-empty-day">Sleep dag hier</div>'}</div>`;
+  }).join('');
+
+  const rows=weatherGroups.map(group=>{
+    const palette=`<div class="weather-row-label"><h3>${group.label}</h3><div class="weather-palette">${group.items.map(item=>`<button class="weather-palette-item" draggable="true" data-weather-group="${group.id}" data-weather-id="${item.id}">${renderIcon(item,'large')}<small>${item.label}</small></button>`).join('')}</div></div>`;
+    const cells=weekDays.map(slot=>{
+      const selected=state.weather?.[slot.id]?.[group.id];
+      const item=selected?itemFor(group.id,selected):null;
+      return `<div class="weather-drop-cell" data-weather-day="${slot.id}" data-weather-category="${group.id}">${item?`<div class="weather-placed">${renderIcon(item,'small')}<strong>${item.label}</strong><button class="weather-remove" data-remove-day="${slot.id}" data-remove-category="${group.id}">×</button></div>`:'<div class="weather-drop-hint">Sleep pictogram hier</div>'}</div>`;
+    }).join('');
+    return palette+cells;
+  }).join('');
+
+  const dayPalette=weekDays.map(day=>`<button class="weather-day-token" draggable="true" data-day-id="${day.id}"><span>${day.id}</span>${day.name}</button>`).join('');
+
+  document.querySelector('#app').innerHTML=`<main class="page weather-page"><header class="topbar"><div class="brand"><div class="fox">🦊</div><div><h1>De Vosjes</h1><p>Maak samen het weer van de week.</p></div></div><nav class="main-nav"><button class="nav-item" id="weather-calendar"><span>📅</span><small>Kalender</small></button><button class="nav-item" id="weather-week"><span>🗓️</span><small>Weekkalender</small></button><button class="nav-item active"><span>🌤️</span><small>Weer</small></button><button class="nav-item" id="weather-clothing"><span>👕</span><small>Kleding</small></button></nav><div class="account">${accountName} <button id="weather-logout">Uitloggen</button></div></header><section class="weather-board"><div class="weather-title"><div><h2>Weer van de week</h2><p>Sleep eerst de weekdagen naar boven en daarna per dag een pictogram voor zon, neerslag en wind.</p></div><button class="weather-clear" id="weather-clear">🗑️ Wissen</button></div><div class="weather-table-wrap"><div class="weather-table"><div class="weather-corner">Categorie</div>${headerCells}${rows}</div></div><div class="weather-day-palette-bottom"><h3>Dagen van de week</h3><p>Sleep maandag tot vrijdag naar de vakken bovenaan de tabel.</p><div class="weather-day-palette-list">${dayPalette}</div></div></section></main>`;
+
+  document.querySelector('#weather-logout').onclick=()=>supabase.auth.signOut();
+  document.querySelector('#weather-calendar').onclick=()=>activeNavigate('calendar');
+  document.querySelector('#weather-week').onclick=()=>activeNavigate('week');
+  document.querySelector('#weather-clothing').onclick=()=>activeNavigate('clothing');
+  document.querySelector('#weather-clear').onclick=()=>{saveState(emptyState());renderWeather()};
+
+  document.querySelectorAll('.weather-day-token').forEach(button=>{
+    const set=()=>{dragged={type:'day',value:weekDays.find(day=>day.id===+button.dataset.dayId)}};
+    button.ondragstart=set;
+    button.addEventListener('pointerdown',set);
+    button.addEventListener('pointerup',event=>dropDayAtPoint(event));
+  });
+
+  document.querySelectorAll('.weather-day-cell').forEach(cell=>{
+    cell.ondragover=event=>{if(dragged?.type==='day'){event.preventDefault();cell.classList.add('over')}};
+    cell.ondragleave=()=>cell.classList.remove('over');
+    cell.ondrop=event=>{event.preventDefault();cell.classList.remove('over');if(dragged?.type==='day')placeDay(+cell.dataset.daySlot,dragged.value);dragged=null};
+  });
+
+  document.querySelectorAll('.weather-palette-item').forEach(button=>{
+    const set=()=>{dragged={type:'weather',group:button.dataset.weatherGroup,item:button.dataset.weatherId}};
+    button.ondragstart=set;
+    button.addEventListener('pointerdown',set);
+    button.addEventListener('pointerup',event=>dropWeatherAtPoint(event));
+  });
+
+  document.querySelectorAll('.weather-drop-cell').forEach(cell=>{
+    cell.ondragover=event=>{if(dragged?.type==='weather'&&dragged.group===cell.dataset.weatherCategory){event.preventDefault();cell.classList.add('over')}};
+    cell.ondragleave=()=>cell.classList.remove('over');
+    cell.ondrop=event=>{event.preventDefault();cell.classList.remove('over');if(dragged?.type==='weather'&&dragged.group===cell.dataset.weatherCategory)placeWeather(+cell.dataset.weatherDay,cell.dataset.weatherCategory,dragged.item);dragged=null};
+  });
+
+  document.querySelectorAll('.weather-remove').forEach(button=>button.onclick=event=>{
+    event.stopPropagation();
+    const state=loadState();
+    const day=button.dataset.removeDay,category=button.dataset.removeCategory;
+    if(state.weather?.[day])delete state.weather[day][category];
+    saveState(state);
+    renderWeather();
+  });
+}
+
+function placeDay(slot,day){
+  if(!day)return;
+  const state=loadState();
+  Object.keys(state.days).forEach(key=>{if(state.days[key]?.id===day.id)delete state.days[key]});
+  state.days[slot]=day;
+  saveState(state);
+  renderWeather();
+}
+
+function placeWeather(day,category,itemId){
+  const state=loadState();
+  state.weather[day]=state.weather[day]||{};
+  state.weather[day][category]=itemId;
+  saveState(state);
+  renderWeather();
+}
+
+function dropDayAtPoint(event){
+  if(dragged?.type!=='day')return;
+  const cell=document.elementFromPoint(event.clientX,event.clientY)?.closest('.weather-day-cell');
+  if(cell)placeDay(+cell.dataset.daySlot,dragged.value);
+  dragged=null;
+}
+
+function dropWeatherAtPoint(event){
+  if(dragged?.type!=='weather')return;
+  const cell=document.elementFromPoint(event.clientX,event.clientY)?.closest('.weather-drop-cell');
+  if(cell&&cell.dataset.weatherCategory===dragged.group)placeWeather(+cell.dataset.weatherDay,cell.dataset.weatherCategory,dragged.item);
+  dragged=null;
+}
