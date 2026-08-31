@@ -11,3 +11,14 @@
 .wednesday-zone {
   min-height: 220px;
 }
+
+.week-column.wednesday {
+  display: flex;
+  flex-direction: column;
+}
+
+.week-column.wednesday .wednesday-afternoon {
+  height: auto;
+  flex: 1;
+  min-height: 180px;
+}
