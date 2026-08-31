@@ -34,5 +34,6 @@ async function sync(){
 const originalSetItem=Storage.prototype.setItem;
 Storage.prototype.setItem=function(name,value){originalSetItem.call(this,name,value);if(name===key&&ready)scheduleSync()};
 window.addEventListener('week-calendar-ready',()=>init());
+supabase.auth.onAuthStateChange((event)=>{if(event==='SIGNED_IN')init()});
 init();
 window.addEventListener('beforeunload',sync);
