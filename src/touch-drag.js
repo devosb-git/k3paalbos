@@ -7,7 +7,7 @@ function point(x,y,selector){return document.elementFromPoint(x,y)?.closest(sele
 function pointTarget(e,s){return point(e.clientX,e.clientY,s)}
 function readWeek(){try{return {days:{},activities:{},...(JSON.parse(localStorage.getItem(weekStorageKey))||{})}}catch{return {days:{},activities:{}}}}
 function saveWeek(s){localStorage.setItem(weekStorageKey,JSON.stringify(s))}
-function rerenderWeek(){document.querySelector('.nav-item[data-page="week"]')?.click()}
+function rerenderWeek(){window.dispatchEvent(new CustomEvent('k3paalbos:navigate',{detail:{page:'week'}}))}
 function clearCalendarSelection(){document.querySelectorAll('.icon.tap-selected').forEach(x=>x.classList.remove('tap-selected'));calendarTapSelection=null;document.body.classList.remove('calendar-tap-place')}
 function selectCalendarIcon(source,item){clearCalendarSelection();calendarTapSelection=item;source.classList.add('tap-selected');document.body.classList.add('calendar-tap-place')}
 async function placeCalendar(item,day){const dayKey=day?.dataset.day;if(!dayKey)return false;const {count,error:ce}=await supabase.from('calendar_items').select('id',{count:'exact',head:true}).eq('day',dayKey);if(ce){alert(`Kon kalender niet lezen: ${ce.message}`);return false}const {error}=await supabase.from('calendar_items').insert({day:dayKey,icon:item.icon,label:item.label,position:count||0});if(error){alert(`Kon activiteit niet opslaan: ${error.message}`);return false}clearCalendarSelection();document.querySelector('.nav-item[data-page="calendar"]')?.click();return true}
