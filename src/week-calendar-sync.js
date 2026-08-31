@@ -5,10 +5,11 @@ let ready=false,last='',saving=false,timer=null;
 const empty=()=>({days:{},activities:{}});
 function local(){try{return {...empty(),...(JSON.parse(localStorage.getItem(key))||{})}}catch{return empty()}}
 function scheduleSync(){clearTimeout(timer);timer=setTimeout(sync,100)}
+function refreshWeekIfVisible(){if(document.querySelector('.week-grid'))document.querySelector('.nav-item[data-page="week"]')?.click()}
 async function init(){
  const {data:{user}}=await supabase.auth.getUser();if(!user)return;
  const {data,error}=await supabase.from('week_calendar_state').select('state').eq('id',1).maybeSingle();
- if(!error&&data?.state){localStorage.setItem(key,JSON.stringify(data.state));last=JSON.stringify(data.state);window.dispatchEvent(new CustomEvent('week-calendar-synced'));}
+ if(!error&&data?.state){localStorage.setItem(key,JSON.stringify(data.state));last=JSON.stringify(data.state);window.dispatchEvent(new CustomEvent('week-calendar-synced'));refreshWeekIfVisible();}
  else last=JSON.stringify(local());
  ready=true;
  scheduleSync();
