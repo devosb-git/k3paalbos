@@ -237,5 +237,14 @@ async function removeItem(id) {
   showStatus('Verwijderd');
 }
 
-await loadItems();
-render();
+async function init() {
+  try {
+    await loadItems();
+  } catch (error) {
+    console.error('Kalender laden mislukt:', error);
+    items = [];
+  }
+  render();
+}
+
+init();
