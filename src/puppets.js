@@ -12,11 +12,8 @@ async function loadStudents(){const {data}=await supabase.from('class_students')
 function choose(){selections=students.length<2?students.map(s=>s.id):shuffle(students).slice(0,2).map(s=>s.id)}
 function studentName(id){return students.find(s=>s.id===id)?.name||'Nog niemand gekozen'}
 function go(page){
- const target=document.querySelector(`.main-nav .nav-item[data-page="${page}"]`);
- if(target&&target.dataset.puppetPage!=='true'){target.click();return}
- const labels={calendar:'Maandkalender',week:'Weekkalender',weather:'Weer',clothing:'Kleding'};
- const byLabel=[...document.querySelectorAll('.main-nav .nav-item')].find(b=>b.querySelector('small')?.textContent?.trim()===labels[page]);
- if(byLabel&&byLabel.dataset.puppetPage!=='true'){byLabel.click();return}
+ const target=document.querySelector(`.main-nav .nav-item[data-page="${page}"]:not([data-puppet-page="true"])`);
+ if(target){target.click();return}
  if(typeof window.__vosjesNavigate==='function')window.__vosjesNavigate(page);
 }
 function nav(){const name=profile?.display_name||'Welkom';return `<header class="topbar"><div class="brand"><div class="fox">🦊</div><div><h1>De Vosjes</h1><p>Wie mag er vandaag?</p></div></div><nav class="main-nav"><button class="nav-item puppet-nav-item" data-page="calendar" data-puppet-page="true"><span>📅</span><small>Maandkalender</small></button><button class="nav-item puppet-nav-item" data-page="week" data-puppet-page="true"><span>🗓️</span><small>Weekkalender</small></button><button class="nav-item puppet-nav-item" data-page="weather" data-puppet-page="true"><span>🌤️</span><small>Weer</small></button><button class="nav-item puppet-nav-item" data-page="clothing" data-puppet-page="true"><span>👕</span><small>Kleding</small></button><button class="nav-item puppet-nav-item" data-puppet-tasks="true"><span>🎲</span><small>Klastaken</small></button><button class="nav-item puppet-nav-item active" data-puppets-nav="true"><span>🧸</span><small>Klaspoppen</small></button></nav><div class="account">${name} <button id="puppets-logout">Uitloggen</button></div></header>`}
@@ -33,9 +30,15 @@ export async function showPuppets(p){
 }
 
 window.__vosjesShowPuppets=showPuppets;
-window.__vosjesNavigate=page=>{const b=document.querySelector(`.main-nav .nav-item[data-page="${page}"]`);if(b)b.click()};
+window.__vosjesNavigate=page=>{const b=document.querySelector(`.main-nav .nav-item[data-page="${page}"]:not([data-puppet-page="true"])`);if(b)b.click()};
 
-const observer=new MutationObserver(()=>{
+function enhanceNavigation(){
  document.querySelectorAll('.main-nav .nav-item small').forEach(s=>{if(s.textContent.trim()==='Kalender')s.textContent='Maandkalender'});
-});
+ document.querySelectorAll('.main-nav').forEach(nav=>{
+  if(nav.querySelector('[data-puppets-nav]'))return;
+  const b=document.createElement('button');b.className='nav-item puppets-nav';b.dataset.puppetsNav='true';b.innerHTML='<span>🧸</span><small>Klaspoppen</small>';nav.appendChild(b);b.onclick=()=>window.__vosjesShowPuppets?.(profile);
+ });
+}
+const observer=new MutationObserver(enhanceNavigation);
 observer.observe(document.body,{childList:true,subtree:true});
+enhanceNavigation();
