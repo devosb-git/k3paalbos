@@ -4,15 +4,13 @@ import './class-tasks.css';
 const supabase=createClient(import.meta.env.VITE_SUPABASE_URL,import.meta.env.VITE_SUPABASE_ANON_KEY);
 const tasks=[['first_in_line','🚶','Eerste in de rij'],['schoolbags','🎒','Boekentassen'],['jackets','🧥','Jassen'],['bottles','🍼','Flessen'],['mail','✉️','Briefwisseling'],['wipe_table','🧽','Tafel poetsen'],['sweep','🧹','Vegen'],['empty_compost','🌱','Compost legen'],['water_plants','🪴','Planten water geven'],['update_calendar','📅','Kalender aanvullen']].map(([key,icon,label])=>({key,icon,label}));
 
-let navCallbacks={};let pageActive=false;let profile=null;let students=[];let currentAssignments=[];let currentSunshine=null;let passwordIsSet=false;let statusMessage='';let statusError=false;
+let pageActive=false;let profile=null;let students=[];let currentAssignments=[];let currentSunshine=null;let passwordIsSet=false;let statusMessage='';let statusError=false;
 const app=()=>document.querySelector('#app');
 const mondayKey=()=>{const d=new Date();const day=d.getDay()||7;d.setDate(d.getDate()-day+1);d.setHours(12,0,0,0);return d.toISOString().slice(0,10)};
 const shuffle=a=>a.map(v=>({v,r:Math.random()})).sort((a,b)=>a.r-b.r).map(x=>x.v);
 
 async function getProfile(){const {data:{user}}=await supabase.auth.getUser();if(!user)return null;const {data}=await supabase.from('profiles').select('id,display_name,role,active').eq('id',user.id).maybeSingle();return data?.active?data:null;}
-function captureNavigation(){navCallbacks={};const pages={Kalender:'calendar',Weekkalender:'week',Weer:'weather',Kleding:'clothing'};document.querySelectorAll('.main-nav .nav-item').forEach(button=>{const page=button.dataset.page||pages[button.querySelector('small')?.textContent?.trim()];if(page&&page!=='tasks'&&typeof button.onclick==='function')navCallbacks[page]=button.onclick;});}
-function clickPageAfterRender(page){const labels={calendar:'Kalender',week:'Weekkalender',weather:'Weer',clothing:'Kleding'};queueMicrotask(()=>{const target=[...document.querySelectorAll('.main-nav .nav-item')].find(b=>b.dataset.page===page||b.querySelector('small')?.textContent?.trim()===labels[page]);target?.click();});}
-function go(page){pageActive=false;const fn=navCallbacks[page];if(typeof fn==='function'){fn(new Event('click'));return;}const bridge=Object.entries(navCallbacks).find(([key,value])=>key!==page&&typeof value==='function')?.[1];if(bridge){bridge(new Event('click'));clickPageAfterRender(page);return;}console.error(`Geen navigatiepad gevonden voor ${page}`);}
+function go(page){pageActive=false;window.dispatchEvent(new CustomEvent('k3paalbos:navigate',{detail:{page}}));}
 
 async function loadData(){
  const week=mondayKey();
@@ -23,7 +21,7 @@ async function loadData(){
  if(profile?.role==='teacher'){if(results[3]?.error){statusMessage=`Beveiligingscontrole mislukt: ${results[3].error.message}`;statusError=true;}else passwordIsSet=!!results[3].data;}
 }
 function studentName(id){return students.find(s=>s.id===id)?.name||'—'}
-function header(){const name=profile?.display_name||'Welkom';return `<header class="topbar"><div class="brand"><div class="fox">🦊</div><div><h1>De Vosjes</h1><p>Klastaken van de week</p></div></div><nav class="main-nav"><button class="nav-item" data-task-go="calendar"><span>📅</span><small>Kalender</small></button><button class="nav-item" data-task-go="week"><span>🗓️</span><small>Weekkalender</small></button><button class="nav-item" data-task-go="weather"><span>🌤️</span><small>Weer</small></button><button class="nav-item" data-task-go="clothing"><span>👕</span><small>Kleding</small></button><button class="nav-item active"><span>🎲</span><small>Klastaken</small></button></nav><div class="account">${name} <button id="tasks-logout">Uitloggen</button></div></header>`;}
+function header(){const name=profile?.display_name||'Welkom';return `<header class="topbar"><div class="brand"><div class="fox">🦊</div><div><h1>De Vosjes</h1><p>Klastaken van de week</p></div></div><nav class="main-nav"><button class="nav-item" data-task-go="calendar"><span>📅</span><small>Kalender</small></button><button class="nav-item" data-task-go="week"><span>🗓️</span><small>Weekkalender</small></button><button class="nav-item" data-task-go="day"><span>➡️</span><small>Dagkalender</small></button><button class="nav-item" data-task-go="weather"><span>🌤️</span><small>Weer</small></button><button class="nav-item" data-task-go="clothing"><span>👕</span><small>Kleding</small></button><button class="nav-item active"><span>🎲</span><small>Klastaken</small></button></nav><div class="account">${name} <button id="tasks-logout">Uitloggen</button></div></header>`;}
 
 function render(){
  if(!pageActive)return;const canEdit=profile?.role==='teacher';const assignmentMap=new Map();currentAssignments.forEach(a=>{if(!assignmentMap.has(a.task_key))assignmentMap.set(a.task_key,[]);assignmentMap.get(a.task_key).push(a)});
@@ -67,6 +65,6 @@ async function changePassword(){const current=document.querySelector('#change-cu
 async function resetAll(){const value=document.querySelector('#reset-password').value;if(!value)return showStatus('Vul eerst het beheerwachtwoord in.',true);if(!confirm('Zeker? Dit wist de volledige taakgeschiedenis en alle zonnetjes. De leerlingenlijst blijft behouden.'))return;const {error}=await supabase.rpc('class_tasks_reset',{p_password:value});if(error)return showStatus(error.message,true);await loadData();showStatus('De taakgeschiedenis is gereset. De leerlingenlijst bleef behouden.');}
 async function newSchoolYear(){const value=document.querySelector('#school-year-password').value;if(!value)return showStatus('Vul eerst het beheerwachtwoord in.',true);if(!confirm('Nieuw schooljaar starten? Dit verwijdert ALLE leerlingen en hun volledige taakgeschiedenis definitief.'))return;if(!confirm('Laatste controle: wil je de volledige oude klas echt verwijderen? Deze actie kan niet ongedaan worden gemaakt.'))return;const {error}=await supabase.rpc('class_tasks_new_school_year',{p_password:value});if(error)return showStatus(error.message,true);await loadData();showStatus('🎓 Nieuw schooljaar gestart. De leerlingenlijst en alle oude klastaken zijn gewist.');}
 
-async function openTasks(){profile=await getProfile();if(!profile)return;captureNavigation();pageActive=true;statusMessage='';statusError=false;await loadData();render();}
-function enhanceNavigation(){if(pageActive)return;document.querySelectorAll('.main-nav').forEach(nav=>{if(nav.querySelector('.tasks-nav'))return;const button=document.createElement('button');button.className='nav-item tasks-nav';button.innerHTML='<span>🎲</span><small>Klastaken</small>';button.onclick=openTasks;nav.appendChild(button);});}
-const observer=new MutationObserver(()=>enhanceNavigation());const root=document.querySelector('#app');if(root){observer.observe(root,{childList:true,subtree:true});enhanceNavigation();}
+async function openTasks(){profile=await getProfile();if(!profile)return;pageActive=true;statusMessage='';statusError=false;await loadData();render();}
+window.addEventListener('k3paalbos:navigate',e=>{if(e.detail?.page!=='tasks')pageActive=false;});
+window.addEventListener('k3paalbos:tasks',()=>openTasks());
