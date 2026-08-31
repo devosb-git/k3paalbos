@@ -45,3 +45,4 @@ async function add(day,icon){const position=items.filter(x=>x.day===day).length;
 function renderPage(){if(currentPage==='week')return renderWeek();if(currentPage==='day')return showDayCalendar(navigate,profile);if(currentPage==='weather')return showWeather(navigate);if(currentPage==='clothing')return showClothing(navigate,profile);return renderCalendar()}
 async function start(){const {data:{user}}=await supabase.auth.getUser();if(!user)return login();profile=await getProfile(user.id);if(!profile)return denied();await load();renderPage()}
 supabase.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){profile=null;items=[];currentPage='calendar';login()}});start();
+// Dagkalender is intentionally part of the main navigation and routes through the same SPA navigator.
