@@ -50,9 +50,7 @@ function addStyles(){
     .week-relative-arrow{font-size:17px;line-height:1;font-weight:900;white-space:nowrap;display:block;text-align:center}
     .week-relative-remove{width:24px;height:24px;border:0;border-radius:50%;background:#fff;color:#b44f4f;font-size:18px;line-height:1;padding:0;display:grid;place-items:center;cursor:pointer}
     .week-relative-remove:hover{background:#fdeeee}
-    .week-relative-palette{margin-top:10px;padding-top:10px;border-top:2px solid #edf2eb}
-    .week-relative-palette h3{margin:0;color:#285d39;font-size:16px}
-    .week-relative-palette p{color:#718176;font-size:12px;margin:2px 0 7px}
+    .week-relative-palette{margin-top:7px}
     .week-relative-list{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
     .week-relative-token{min-width:0;border:2px solid #d6e8d3;background:#eef8ec;color:#284a33;border-radius:10px;padding:5px 4px;min-height:48px;font-size:12px;font-weight:800;white-space:nowrap;touch-action:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
     @media(max-width:560px){.week-relative-palette{min-width:760px}.week-relative-token{font-size:11px}}
@@ -111,12 +109,16 @@ function mount(force=false){
 
   wrap.querySelector('.week-relative-palette')?.remove();
   if(canEdit){
-    const palette=document.createElement('div');
-    palette.className='week-relative-palette';
-    palette.innerHTML=`<h3>Tijdbegrippen</h3><p>Sleep elk begrip onder de juiste dag.</p><div class="week-relative-list">${relativeTerms.map(term=>`<button class="week-relative-token" draggable="true" data-relative-id="${term.id}">${termContent(term)}</button>`).join('')}</div>`;
     const dayPalette=wrap.querySelector('.day-palette-bottom');
-    (dayPalette||wrap).insertAdjacentElement(dayPalette?'afterend':'beforeend',palette);
-    palette.querySelectorAll('.week-relative-token').forEach(button=>bindDraggable(button,termById(button.dataset.relativeId)));
+    if(dayPalette){
+      const heading=dayPalette.querySelector('h3');
+      if(heading)heading.textContent='Begrippen';
+      const palette=document.createElement('div');
+      palette.className='week-relative-palette';
+      palette.innerHTML=`<div class="week-relative-list">${relativeTerms.map(term=>`<button class="week-relative-token" draggable="true" data-relative-id="${term.id}">${termContent(term)}</button>`).join('')}</div>`;
+      dayPalette.appendChild(palette);
+      palette.querySelectorAll('.week-relative-token').forEach(button=>bindDraggable(button,termById(button.dataset.relativeId)));
+    }
   }
   mounting=false;
 }
