@@ -51,9 +51,11 @@ function addStyles(){
     .week-relative-remove{width:24px;height:24px;border:0;border-radius:50%;background:#fff;color:#b44f4f;font-size:18px;line-height:1;padding:0;display:grid;place-items:center;cursor:pointer}
     .week-relative-remove:hover{background:#fdeeee}
     .week-relative-palette{margin-top:7px}
+    .week-relative-row{display:grid;grid-template-columns:88px minmax(0,1fr);gap:5px;align-items:center}
+    .week-relative-label{font-size:12px;font-weight:800;color:#58705e}
     .week-relative-list{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
     .week-relative-token{min-width:0;border:2px solid #d6e8d3;background:#eef8ec;color:#284a33;border-radius:10px;padding:5px 4px;min-height:48px;font-size:12px;font-weight:800;white-space:nowrap;touch-action:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
-    @media(max-width:560px){.week-relative-palette{min-width:760px}.week-relative-token{font-size:11px}}
+    @media(max-width:560px){.week-relative-palette{min-width:760px}.week-relative-row{grid-template-columns:78px minmax(0,1fr)}.week-relative-token{font-size:11px}}
   `;
   document.head.appendChild(style);
 }
@@ -115,7 +117,7 @@ function mount(force=false){
       if(heading)heading.textContent='Begrippen';
       const palette=document.createElement('div');
       palette.className='week-relative-palette';
-      palette.innerHTML=`<div class="week-relative-list">${relativeTerms.map(term=>`<button class="week-relative-token" draggable="true" data-relative-id="${term.id}">${termContent(term)}</button>`).join('')}</div>`;
+      palette.innerHTML=`<div class="week-relative-row"><div class="week-relative-label">Tijdsbegrippen</div><div class="week-relative-list">${relativeTerms.map(term=>`<button class="week-relative-token" draggable="true" data-relative-id="${term.id}">${termContent(term)}</button>`).join('')}</div></div>`;
       dayPalette.appendChild(palette);
       palette.querySelectorAll('.week-relative-token').forEach(button=>bindDraggable(button,termById(button.dataset.relativeId)));
     }
