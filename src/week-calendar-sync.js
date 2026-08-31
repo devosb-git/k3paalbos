@@ -14,6 +14,7 @@ async function init(){
    localStorage.setItem(key,state);
    last=state;
    window.dispatchEvent(new CustomEvent('week-calendar-synced'));
+   setTimeout(()=>document.querySelector('.nav-item[data-page="week"]')?.click(),0);
  } else {
    last=JSON.stringify(local());
  }
