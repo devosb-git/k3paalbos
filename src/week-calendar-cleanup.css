@@ -3,3 +3,11 @@
 .week-relative-palette > p {
   display: none;
 }
+
+.activity-zone {
+  min-height: 340px;
+}
+
+.wednesday-zone {
+  min-height: 220px;
+}
