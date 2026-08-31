@@ -8,8 +8,14 @@ function scheduleSync(){clearTimeout(timer);timer=setTimeout(sync,100)}
 async function init(){
  const {data:{user}}=await supabase.auth.getUser();if(!user)return;
  const {data,error}=await supabase.from('week_calendar_state').select('state').eq('id',1).maybeSingle();
- if(!error&&data?.state){localStorage.setItem(key,JSON.stringify(data.state));last=JSON.stringify(data.state);window.dispatchEvent(new CustomEvent('week-calendar-synced'));}
- else last=JSON.stringify(local());
+ if(!error&&data?.state){
+   localStorage.setItem(key,JSON.stringify(data.state));
+   last=JSON.stringify(data.state);
+   window.dispatchEvent(new CustomEvent('week-calendar-synced'));
+   // main.js may already have rendered the Weekkalender before this async load finished.
+   // Re-render it when the persisted state arrives instead of requiring a page refresh.
+   document.querySelector('.nav-item[data-page="week"].active')?.click();
+ } else last=JSON.stringify(local());
  ready=true;
  scheduleSync();
 }
@@ -23,5 +29,4 @@ async function sync(){
 const originalSetItem=Storage.prototype.setItem;
 Storage.prototype.setItem=function(name,value){originalSetItem.call(this,name,value);if(name===key)scheduleSync()};
 init();
-setInterval(sync,500);
 window.addEventListener('beforeunload',sync);
