@@ -1,0 +1,9 @@
+.day-slider-points {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.day-slider-point {
+  flex: 0 0 12px;
+}
