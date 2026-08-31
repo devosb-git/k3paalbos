@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import './class-tasks.css';
 
 const supabase=createClient(import.meta.env.VITE_SUPABASE_URL,import.meta.env.VITE_SUPABASE_ANON_KEY);
-const tasks=[['first_in_line','🚶','Eerste in de rij'],['schoolbags','🎒','Boekentassen'],['jackets','🧥','Jassen'],['bottles','🍼','Flessen'],['mail','✉️','Briefwisseling'],['wipe_table','🧽','Tafel poetsen'],['sweep','🧹','Vegen'],['empty_compost','🌱','Compost legen'],['water_plants','🪴','Planten water geven'],['update_calendar','📅','Kalender aanvullen']].map(([key,icon,label])=>({key,icon,label}));
+const tasks=[['first_in_line','🚶','Eerste in de rij'],['schoolbags','🎒','Boekentassen'],['jackets','🧥','Jassen'],['bottles','🚰','Flessen'],['mail','✉️','Briefwisseling'],['wipe_table','🧽','Tafel poetsen'],['sweep','🧹','Vegen'],['empty_compost','🌱','Compost legen'],['water_plants','🪴','Planten water geven'],['update_calendar','📅','Kalender aanvullen']].map(([key,icon,label])=>({key,icon,label}));
 
 let pageActive=false;let profile=null;let students=[];let currentAssignments=[];let currentSunshine=null;let passwordIsSet=false;let statusMessage='';let statusError=false;
 const app=()=>document.querySelector('#app');
