@@ -1,0 +1,5 @@
+.week-title p,
+.day-palette-bottom > p,
+.week-relative-palette > p {
+  display: none;
+}
