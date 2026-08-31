@@ -93,6 +93,18 @@ function bindToken(button,page,activity){
 }
 
 function mountMonth(){
+  const groups=document.querySelector('.content .calendar-activity-groups');
+  if(groups){
+    if(groups.querySelector('[data-extra-month-group]'))return;
+    const details=document.createElement('details');
+    details.dataset.extraMonthGroup='true';
+    details.className='activity-group';
+    details.innerHTML=`<summary>Extra activiteiten</summary><div class="activity-palette">${extraActivities.map((activity,index)=>`<button class="activity-token calendar-activity-token" draggable="true" data-extra-index="${index}" data-extra-calendar-activity="${activity.label}"><span>${activity.icon}</span><small>${activity.label}</small></button>`).join('')}</div>`;
+    groups.appendChild(details);
+    details.querySelectorAll('[data-extra-index]').forEach(button=>bindToken(button,'calendar',extraActivities[+button.dataset.extraIndex]));
+    return;
+  }
+
   const icons=document.querySelector('.content .icons');
   if(!icons||icons.querySelector('[data-extra-calendar-activity]'))return;
   extraActivities.forEach(activity=>{
