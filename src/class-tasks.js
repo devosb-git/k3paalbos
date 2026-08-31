@@ -2,7 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 import './class-tasks.css';
 
 const supabase=createClient(import.meta.env.VITE_SUPABASE_URL,import.meta.env.VITE_SUPABASE_ANON_KEY);
-const tasks=[['first_in_line','🚶','Eerste in de rij'],['schoolbags','🎒','Boekentassen'],['jackets','🧥','Jassen'],['bottles','🚰','Flessen'],['mail','✉️','Briefwisseling'],['wipe_table','🧽','Tafel poetsen'],['sweep','🧹','Vegen'],['empty_compost','🌱','Compost legen'],['water_plants','🪴','Planten water geven'],['update_calendar','📅','Kalender aanvullen']].map(([key,icon,label])=>({key,icon,label}));
+const waterBottle=`<svg viewBox="0 0 64 96" width="48" height="72" aria-hidden="true"><rect x="24" y="4" width="16" height="10" rx="3" fill="#5f91ba"/><path d="M22 14h20v10c0 4 8 9 8 19v39c0 7-5 10-12 10H26c-7 0-12-3-12-10V43c0-10 8-15 8-19V14z" fill="#dff3ff" stroke="#5f91ba" stroke-width="3"/><path d="M18 51h28v23H18z" fill="#82c9ef" opacity=".85"/><path d="M27 38c3-5 6-8 6-8s6 7 6 12a6 6 0 1 1-12 0c0-1 .1-2 .4-4z" fill="#4aa8dc"/></svg>`;
+const tasks=[['first_in_line','🚶','Eerste in de rij'],['schoolbags','🎒','Boekentassen'],['jackets','🧥','Jassen'],['bottles',waterBottle,'Flessen'],['mail','✉️','Briefwisseling'],['wipe_table','🧽','Tafel poetsen'],['sweep','🧹','Vegen'],['empty_compost','🌱','Compost legen'],['water_plants','🪴','Planten water geven'],['update_calendar','📅','Kalender aanvullen']].map(([key,icon,label])=>({key,icon,label}));
 
 let pageActive=false;let profile=null;let students=[];let currentAssignments=[];let currentSunshine=null;let passwordIsSet=false;let statusMessage='';let statusError=false;
 const app=()=>document.querySelector('#app');
@@ -52,7 +53,7 @@ async function rollTasks(){
  if(students.length<2)return showStatus('Voeg eerst minstens twee leerlingen toe.',true);
  statusMessage='De dobbelsteen rolt…';statusError=false;render();document.querySelector('#roll-tasks')?.classList.add('rolling');await new Promise(r=>setTimeout(r,850));
  const week=mondayKey();
- if(currentAssignments.length||currentSunshine){if(!confirm('Er bestaat al een verdeling voor deze week. Opnieuw dobbelen? De huidige week wordt vervangen.')){await loadData();return showStatus('De bestaande verdeling bleef behouden.');}await supabase.from('class_task_assignments').delete().eq('week_start',week);await supabase.from('class_week_sunshine').delete().eq('week_start',week);}
+ if(currentAssignments.length||currentSunshine){await supabase.from('class_task_assignments').delete().eq('week_start',week);await supabase.from('class_week_sunshine').delete().eq('week_start',week);}
  const {data:history,error}=await supabase.from('class_task_assignments').select('task_key,student_id,task_cycle,week_start');if(error)return showStatus(error.message,true);
  const activeIds=new Set(students.map(s=>s.id));const newRows=[];const weekLoad=new Map(students.map(s=>[s.id,0]));
  for(const task of tasks){const taskHistory=(history||[]).filter(h=>h.task_key===task.key);let cycle=Math.max(1,...taskHistory.map(h=>h.task_cycle||1));let used=new Set(taskHistory.filter(h=>(h.task_cycle||1)===cycle&&activeIds.has(h.student_id)).map(h=>h.student_id));if(used.size>=students.length){cycle++;used=new Set()}const picks=[];while(picks.length<2){let candidates=students.filter(s=>!picks.includes(s.id)&&!used.has(s.id));if(!candidates.length){cycle++;used=new Set();candidates=students.filter(s=>!picks.includes(s.id))}candidates=shuffle(candidates).sort((a,b)=>(weekLoad.get(a.id)||0)-(weekLoad.get(b.id)||0));const chosen=candidates[0];if(!chosen)break;picks.push(chosen.id);used.add(chosen.id);weekLoad.set(chosen.id,(weekLoad.get(chosen.id)||0)+1);newRows.push({week_start:week,task_key:task.key,slot:picks.length,student_id:chosen.id,task_cycle:cycle,created_by:profile.id});}}
