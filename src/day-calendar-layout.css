@@ -7,3 +7,11 @@
 .day-slider-point {
   flex: 0 0 12px;
 }
+
+.day-slider-point:first-child {
+  margin-left: -6px;
+}
+
+.day-slider-point:last-child {
+  margin-right: -6px;
+}
