@@ -1,21 +1,21 @@
 import './clothing-temperature-size.css';
 import { createClient } from '@supabase/supabase-js';
-import tshirt from './clothing/tshirt.svg';
-import sweater from './clothing/sweater.svg';
-import longPants from './clothing/long-pants.svg';
-import jacket from './clothing/jacket.svg';
-import sunglasses from './clothing/sunglasses.svg';
-import scarf from './clothing/scarf.svg';
-import gloves from './clothing/gloves.svg';
-import hat from './clothing/hat.svg';
-import shorts from './clothing/shorts.svg';
+import tshirt from './clothing/tshirt.png';
+import sweater from './clothing/sweater.png';
+import longPants from './clothing/long-pants.png';
+import jacket from './clothing/jacket.png';
+import sunglasses from './clothing/sunglasses.png';
+import scarf from './clothing/scarf.png';
+import gloves from './clothing/gloves.png';
+import hat from './clothing/hat.png';
+import shorts from './clothing/shorts.png';
 import thermometer from './clothing/thermometer.svg';
 import childDressed from './clothing/child-dressed.svg';
-import koud from './clothing/koud.svg';
-import koel from './clothing/koel.svg';
-import lekker from './clothing/lekker.svg';
-import warm from './clothing/warm.svg';
-import heelWarm from './clothing/heel-warm.svg';
+import koud from './clothing/koud.png';
+import koel from './clothing/koel.png';
+import lekker from './clothing/lekker.png';
+import warm from './clothing/warm.png';
+import heelWarm from './clothing/heel-warm.png';
 
 const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 const temps = [['cold','Koud',koud],['cool','Koel',koel],['nice','Lekker',lekker],['warm','Warm',warm],['hot','Heel warm',heelWarm]];
@@ -31,7 +31,7 @@ function styles(){
  if(document.getElementById('clothing-styles'))return;
  const s=document.createElement('style');s.id='clothing-styles';
  s.textContent=`
-.clothing-page{min-height:100vh}.clothing-card{max-width:1500px;margin:0 auto;background:#fff;border:2px solid #dce9db;border-radius:18px;box-shadow:0 6px 18px #234c2712;padding:18px}.clothing-section+.clothing-section{border-top:2px solid #e7eee5;margin-top:18px;padding-top:18px}.clothing-heading{display:flex;align-items:center;gap:12px;margin-bottom:12px}.clothing-heading img{width:52px;height:52px;object-fit:contain;border-radius:14px}.clothing-heading h2,.outfit-intro h2{font-size:26px;color:#285d39}.clothing-heading p,.outfit-intro p{color:#718176;margin-top:2px;font-size:14px}.temperature-layout{display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center}.thermo-card{display:flex;align-items:center;justify-content:center;background:#fff8e9;border:2px solid #f0dfbd;border-radius:18px;padding:10px;min-height:150px}.thermo-card img{width:90px;height:125px;object-fit:contain}.temp-options{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.temp-option{border:0;background:transparent;border-radius:14px;min-height:125px;padding:4px;display:flex;align-items:center;justify-content:center;cursor:pointer}.temp-option.selected{background:#e8f4e7;box-shadow:0 0 0 3px #4f9a61}.temp-image{width:100%;height:100%;max-width:105px;max-height:105px;object-fit:contain}.outfit-intro{display:flex;align-items:center;gap:12px;margin-bottom:12px}.outfit-intro img{width:68px;height:82px;object-fit:contain}.clothes-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.clothing-item{border:2px solid #e1eadf;background:#fbfdf9;border-radius:15px;min-height:145px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer}.clothing-item.selected{border-color:#4f9a61;background:#e8f4e7;box-shadow:0 0 0 3px #d7ecd5}.clothing-item img{width:85px;height:82px;object-fit:contain}.clothing-item strong{font-size:14px;color:#496153}.clothing-note{margin-top:12px;padding:9px 12px;border-radius:12px;background:#f5f9f2;color:#55705f;text-align:center;font-size:14px}.clothing-page .main-nav .nav-item.active{background:#e8f4e7;border-color:#cce2ca;color:#23623a}@media(max-width:900px){.temperature-layout{grid-template-columns:1fr}.thermo-card{min-height:130px}.clothes-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:560px){.clothing-card{padding:12px}.temp-options{grid-template-columns:repeat(2,minmax(0,1fr))}.temp-option{min-height:105px}.clothes-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.clothing-item{min-height:135px}.clothing-item img{width:75px;height:72px}.clothing-heading img{width:48px;height:48px}.outfit-intro img{width:60px;height:72px}}`;
+.clothing-page{min-height:100vh}.clothing-card{max-width:1500px;margin:0 auto;background:#fff;border:2px solid #dce9db;border-radius:18px;box-shadow:0 6px 18px #234c2712;padding:18px}.clothing-section+.clothing-section{border-top:2px solid #e7eee5;margin-top:18px;padding-top:18px}.clothing-heading{display:flex;align-items:center;gap:12px;margin-bottom:12px}.clothing-heading img{width:52px;height:52px;object-fit:contain;border-radius:14px}.clothing-heading h2,.outfit-intro h2{font-size:26px;color:#285d39}.clothing-heading p,.outfit-intro p{color:#718176;margin-top:2px;font-size:14px}.temperature-layout{display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center}.thermo-card{display:flex;align-items:center;justify-content:center;background:#fff8e9;border:2px solid #f0dfbd;border-radius:18px;padding:10px;min-height:150px}.thermo-card img{width:90px;height:125px;object-fit:contain}.temp-options{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.temp-option{border:0;background:transparent;border-radius:14px;min-height:125px;padding:4px;display:flex;align-items:center;justify-content:center;cursor:pointer}.temp-option.selected{background:#e8f4e7;box-shadow:0 0 0 3px #4f9a61}.temp-image{width:100%;height:100%;max-width:105px;max-height:105px;object-fit:contain}.outfit-intro{display:flex;align-items:center;gap:12px;margin-bottom:12px}.outfit-intro img{width:68px;height:82px;object-fit:contain}.clothes-grid{display:grid;grid-template-columns:repeat(auto-fit,140px);gap:8px;justify-content:center}.clothing-item{width:140px;justify-self:center;box-sizing:border-box;border:2px solid #e1eadf;background:#fbfdf9;border-radius:15px;padding:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer}.clothing-item.selected{border-color:#4f9a61;background:#e8f4e7;box-shadow:0 0 0 3px #d7ecd5}.clothing-item img{width:100%;height:130px;object-fit:contain}.clothing-item strong{display:none}.clothing-note{margin-top:12px;padding:9px 12px;border-radius:12px;background:#f5f9f2;color:#55705f;text-align:center;font-size:14px}.clothing-page .main-nav .nav-item.active{background:#e8f4e7;border-color:#cce2ca;color:#23623a}@media(max-width:900px){.temperature-layout{grid-template-columns:1fr}.thermo-card{min-height:130px}.clothes-grid{grid-template-columns:repeat(auto-fit,120px);gap:7px}.clothing-item{width:120px;padding:5px}.clothing-item img{width:100%;height:115px}}@media(max-width:560px){.clothing-card{padding:12px}.temp-options{grid-template-columns:repeat(2,minmax(0,1fr))}.temp-option{min-height:105px}.clothes-grid{grid-template-columns:repeat(auto-fit,105px);gap:7px}.clothing-item{width:105px;padding:5px}.clothing-item img{width:100%;height:100px}.clothing-heading img{width:48px;height:48px}.outfit-intro img{width:60px;height:72px}}`;
  document.head.appendChild(s);
 }
 
