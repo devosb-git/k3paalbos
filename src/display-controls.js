@@ -51,7 +51,7 @@ function addStyles() {
 function controlsHtml(className = 'display-controls') {
   return `<div class="${className}" aria-label="Scherminstellingen">
     <button type="button" data-display-minus aria-label="Uitzoomen">−</button>
-    <span class="display-controls"><button type="button" class="display-zoom" data-display-zoom aria-label="Zoomniveau">${getZoom()}%</button></span>
+    <button type="button" class="display-zoom" data-display-zoom aria-label="Zoomniveau">${getZoom()}%</button>
     <button type="button" data-display-plus aria-label="Inzoomen">+</button>
     <button type="button" class="display-fullscreen" data-display-fullscreen aria-label="Volledig scherm">⛶</button>
   </div>`;
@@ -83,17 +83,13 @@ function addNavigationControls() {
   bindControls(account);
 }
 
-function update() {
-  applyZoom(getZoom());
+function addControlsOnly() {
   addLoginControls();
   addNavigationControls();
 }
 
 addStyles();
-update();
-new MutationObserver(update).observe(document.body, {childList:true, subtree:true});
-document.addEventListener('fullscreenchange', () => {
-  document.querySelectorAll('[data-display-fullscreen]').forEach(button => {
-    button.textContent = document.fullscreenElement ? '⛶' : '⛶';
-  });
-});
+applyZoom(getZoom());
+addControlsOnly();
+
+new MutationObserver(addControlsOnly).observe(document.body, {childList:true, subtree:true});
