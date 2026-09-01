@@ -34,16 +34,16 @@ function addStyles() {
   const style = document.createElement('style');
   style.id = 'display-controls-styles';
   style.textContent = `
-    .display-controls{display:flex;align-items:center;justify-content:flex-end;gap:5px;margin-bottom:5px}
-    .display-controls button{border:2px solid #dce9db;background:#fbfdf9;color:#496153;border-radius:9px;min-width:34px;height:30px;padding:2px 8px;font-weight:800;cursor:pointer;font-size:14px;line-height:1}
+    .display-controls{display:flex;align-items:center;justify-content:flex-end;gap:3px;margin-bottom:3px}
+    .display-controls button{border:1px solid #dce9db;background:#fbfdf9;color:#496153;border-radius:7px;min-width:27px;height:24px;padding:1px 5px;font-weight:800;cursor:pointer;font-size:12px;line-height:1}
     .display-controls button:hover{background:#e8f4e7}
-    .display-controls .display-zoom{min-width:48px;cursor:default;background:#fff}
-    .display-controls .display-fullscreen{font-size:17px}
+    .display-controls .display-zoom{min-width:40px;cursor:default;background:#fff}
+    .display-controls .display-fullscreen{font-size:14px}
     .login-display-controls{position:absolute;top:16px;right:16px;margin:0}
     .login-page{position:relative}
     .account{display:flex!important;flex-direction:column;align-items:flex-end;gap:4px}
     .account .display-controls{order:-1;width:100%}
-    @media(max-width:900px){.display-controls button{min-width:32px;padding:2px 6px}.login-display-controls{top:10px;right:10px}}
+    @media(max-width:900px){.display-controls button{min-width:25px;padding:1px 4px}.login-display-controls{top:10px;right:10px}}
   `;
   document.head.appendChild(style);
 }
@@ -91,5 +91,4 @@ function addControlsOnly() {
 addStyles();
 applyZoom(getZoom());
 addControlsOnly();
-
 new MutationObserver(addControlsOnly).observe(document.body, {childList:true, subtree:true});
