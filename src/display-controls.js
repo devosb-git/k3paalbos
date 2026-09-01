@@ -61,6 +61,7 @@ async function recordDisplayInfo() {
     if (!user) return;
     await supabase.from('display_diagnostics').upsert({
       device_id: getDeviceId(),
+      user_id: user.id,
       ...data,
       app_zoom: getZoom(),
       last_seen_at: new Date().toISOString()
