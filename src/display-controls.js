@@ -19,7 +19,8 @@ function getDeviceId() {
 }
 
 function getOriginalViewport() {
-  const stored = localStorage.getItem('k3paalbos-original-viewport');
+  const key = 'k3paalbos-original-viewport';
+  const stored = localStorage.getItem(key);
   if (stored) {
     try { return JSON.parse(stored); } catch {}
   }
@@ -30,7 +31,7 @@ function getOriginalViewport() {
     viewport_height: window.innerHeight,
     device_pixel_ratio: window.devicePixelRatio || 1
   };
-  localStorage.setItem('k3paalbos-original-viewport', JSON.stringify(data));
+  localStorage.setItem(key, JSON.stringify(data));
   return data;
 }
 
@@ -50,7 +51,8 @@ async function toggleFullscreen() {
 
 async function recordDisplayInfo() {
   const page = document.querySelector('.login-page');
-  if (!page) return;
+  const account = document.querySelector('.topbar .account');
+  if (!page && !account) return;
   const data = getOriginalViewport();
   try {
     const { createClient } = await import('@supabase/supabase-js');
@@ -88,8 +90,8 @@ function bindControls(root = document) {
   root.querySelectorAll('[data-display-plus]').forEach(button => { button.onclick = () => applyZoom(getZoom() + STEP); });
   root.querySelectorAll('[data-display-fullscreen]').forEach(button => { button.onclick = toggleFullscreen; });
 }
-function addLoginControls() { const page = document.querySelector('.login-page'); if (!page || page.querySelector('.login-display-controls')) return; page.insertAdjacentHTML('afterbegin', controlsHtml('display-controls login-display-controls')); bindControls(page); recordDisplayInfo(); }
-function addNavigationControls() { const account = document.querySelector('.topbar .account'); if (!account || account.querySelector('.display-controls')) return; account.insertAdjacentHTML('afterbegin', controlsHtml()); bindControls(account); }
+function addLoginControls() { const page = document.querySelector('.login-page'); if (!page || page.querySelector('.login-display-controls')) return; page.insertAdjacentHTML('afterbegin', controlsHtml('display-controls login-display-controls')); bindControls(page); }
+function addNavigationControls() { const account = document.querySelector('.topbar .account'); if (!account || account.querySelector('.display-controls')) return; account.insertAdjacentHTML('afterbegin', controlsHtml()); bindControls(account); recordDisplayInfo(); }
 function addControlsOnly() { addLoginControls(); addNavigationControls(); }
 addStyles();
 getOriginalViewport();
