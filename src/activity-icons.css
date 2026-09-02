@@ -18,3 +18,10 @@
   background: #f1f3ef;
   color: #5f6d63;
 }
+
+.day-slider .day-slider-knob {
+  background: #f4b56a;
+  border-color: #d98a35;
+  color: #294d36;
+  box-shadow: 0 5px 14px #9a5c2438;
+}
