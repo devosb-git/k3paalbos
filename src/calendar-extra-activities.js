@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { activityIconMarkup } from './activity-icon.js';
 import { getWeekState, updateWeekState } from './week-calendar-store.js';
 
 const supabase=createClient(import.meta.env.VITE_SUPABASE_URL,import.meta.env.VITE_SUPABASE_ANON_KEY);
@@ -98,7 +99,7 @@ function mountMonth(){
     const details=document.createElement('details');
     details.dataset.extraMonthGroup='true';
     details.className='activity-group';
-    details.innerHTML=`<summary>Extra activiteiten</summary><div class="activity-palette">${extraActivities.map((activity,index)=>`<button class="activity-token calendar-activity-token" draggable="true" data-extra-index="${index}" data-extra-calendar-activity="${activity.label}"><span>${activity.icon}</span><small>${activity.label}</small></button>`).join('')}</div>`;
+    details.innerHTML=`<summary>Extra activiteiten</summary><div class="activity-palette">${extraActivities.map((activity,index)=>`<button class="activity-token calendar-activity-token" draggable="true" data-extra-index="${index}" data-extra-calendar-activity="${activity.label}" data-icon="${activity.icon}"><span>${activityIconMarkup(activity.icon,activity.label)}</span><small>${activity.label}</small></button>`).join('')}</div>`;
     groups.appendChild(details);
     details.querySelectorAll('[data-extra-index]').forEach(button=>bindToken(button,'calendar',extraActivities[+button.dataset.extraIndex]));
     return;
@@ -111,7 +112,8 @@ function mountMonth(){
     button.className='icon';
     button.draggable=true;
     button.dataset.extraCalendarActivity=activity.label;
-    button.innerHTML=`<span>${activity.icon}</span><small>${activity.label}</small>`;
+    button.dataset.icon=activity.icon;
+    button.innerHTML=`<span>${activityIconMarkup(activity.icon,activity.label)}</span><small>${activity.label}</small>`;
     bindToken(button,'calendar',activity);
     icons.appendChild(button);
   });
@@ -123,7 +125,7 @@ function mountWeek(){
   const details=document.createElement('details');
   details.dataset.extraWeekGroup='true';
   details.className='activity-group';
-  details.innerHTML=`<summary>Extra activiteiten</summary><div class="activity-palette">${extraActivities.map((activity,index)=>`<button class="activity-token" draggable="true" data-extra-index="${index}"><span>${activity.icon}</span><small>${activity.label}</small></button>`).join('')}</div>`;
+  details.innerHTML=`<summary>Extra activiteiten</summary><div class="activity-palette">${extraActivities.map((activity,index)=>`<button class="activity-token" draggable="true" data-extra-index="${index}" data-icon="${activity.icon}"><span>${activityIconMarkup(activity.icon,activity.label)}</span><small>${activity.label}</small></button>`).join('')}</div>`;
   groups.appendChild(details);
   details.querySelectorAll('[data-extra-index]').forEach(button=>bindToken(button,'week',extraActivities[+button.dataset.extraIndex]));
 }
@@ -133,7 +135,7 @@ function mountDay(){
   if(!groups||groups.querySelector('[data-extra-day-group]'))return;
   const details=document.createElement('details');
   details.dataset.extraDayGroup='true';
-  details.innerHTML=`<summary>Extra activiteiten</summary><div class="day-palette">${extraActivities.map((activity,index)=>`<button class="day-token" draggable="true" data-extra-index="${index}" data-icon="${activity.icon}" data-label="${activity.label}"><span>${activity.icon}</span><small>${activity.label}</small></button>`).join('')}</div>`;
+  details.innerHTML=`<summary>Extra activiteiten</summary><div class="day-palette">${extraActivities.map((activity,index)=>`<button class="day-token" draggable="true" data-extra-index="${index}" data-icon="${activity.icon}" data-label="${activity.label}"><span>${activityIconMarkup(activity.icon,activity.label)}</span><small>${activity.label}</small></button>`).join('')}</div>`;
   groups.appendChild(details);
   details.querySelectorAll('[data-extra-index]').forEach(button=>bindToken(button,'day',extraActivities[+button.dataset.extraIndex]));
 }

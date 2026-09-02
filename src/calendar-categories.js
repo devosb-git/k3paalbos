@@ -1,11 +1,11 @@
 const calendarCategoryOrder = [
-  ['Bewegen & ontspannen', ['Buiten', 'Speeltijd', 'Sportdag', 'Zwemmen']],
-  ['Samen & zorg', ['Kring', 'Gespreksmoment']],
+  ['Bewegen & ontspannen', ['Buiten', 'Speeltijd', 'Bewegen', 'Turnen', 'Zwemmen', 'Yoga', 'Sportdag']],
+  ['Samen & zorg', ['Hartje', 'Zorg', 'Kleine groep', 'Kring', 'Babbelronde', 'Gespreksmoment']],
   ['Dagritme & verzorging', ['WC', 'Middag', 'Soep', 'Fruit']],
-  ['Leren', ['Verkeer']],
-  ['Lezen, spelen & creatief', ['Toneel', 'Film', 'Kiesbak', 'Bib']],
+  ['Leren', ['Wiskunde', 'Taal', 'Letters', 'Schrijven', 'STEM', 'Verkeer', 'Frans']],
+  ['Lezen, spelen & creatief', ['Lezen', 'Knutselen', 'Muziek', 'Opvoedende spelen', 'Puzzelen', 'Toneel', 'Film', 'Voorlezen', 'Kiesbak', 'Bib']],
   ['Op stap & bijzonder', ['Bus', 'Op stap', 'Speciale act.']],
-  ['Feestdagen', ['Moederdag', 'Vaderdag', 'Feest', 'Kerstdag', 'Pasen', 'Sinterklaas', 'Verjaardag']],
+  ['Feestdagen', ['Moederdag', 'Vaderdag', 'Feest', 'Kerst', 'Pasen', 'Sinterklaas', 'Verjaardag']],
 ];
 
 function categoriseCalendarActivities() {
