@@ -1,4 +1,4 @@
-const storageKey='k3paalbos-weekcalendar-v2';
+import { getWeekState, updateWeekState } from './week-calendar-store.js';
 const relativeTerms=[
   {id:'day-before-yesterday',label:'Eergisteren',arrow:'←←'},
   {id:'yesterday',label:'Gisteren',arrow:'←'},
@@ -10,14 +10,11 @@ let draggedTerm=null;
 let mounting=false;
 
 function loadState(){
-  try{return JSON.parse(localStorage.getItem(storageKey))||{}}
-  catch{return {}}
+  return getWeekState();
 }
 
 function writeRelative(relativeDays){
-  const state=loadState();
-  localStorage.setItem(storageKey,JSON.stringify({...state,relativeDays}));
-  mount(true);
+  updateWeekState(state=>{state.relativeDays=relativeDays});
 }
 
 function saveRelative(slot,term){
@@ -128,5 +125,5 @@ function mount(force=false){
 const observer=new MutationObserver(()=>queueMicrotask(()=>mount()));
 const app=document.querySelector('#app');
 if(app)observer.observe(app,{childList:true,subtree:true});
-window.addEventListener('week-calendar-synced',()=>setTimeout(()=>mount(true),0));
+window.addEventListener('week-calendar-state-changed',()=>setTimeout(()=>mount(true),0));
 mount();
