@@ -1,8 +1,9 @@
 const calendarCategoryOrder = [
-  ['Bewegen & ontspannen', ['Buiten', 'Sportdag', 'Zwemmen']],
-  ['Samen & zorg', ['Gespreksmoment']],
+  ['Bewegen & ontspannen', ['Buiten', 'Speeltijd', 'Sportdag', 'Zwemmen']],
+  ['Samen & zorg', ['Kring', 'Gespreksmoment']],
+  ['Dagritme & verzorging', ['WC', 'Middag', 'Soep', 'Fruit']],
   ['Leren', ['Verkeer']],
-  ['Lezen, spelen & creatief', ['Toneel', 'Film', 'Bib']],
+  ['Lezen, spelen & creatief', ['Toneel', 'Film', 'Kiesbak', 'Bib']],
   ['Op stap & bijzonder', ['Bus', 'Op stap', 'Speciale act.']],
   ['Feestdagen', ['Moederdag', 'Vaderdag', 'Feest', 'Kerstdag', 'Pasen', 'Sinterklaas', 'Verjaardag']],
 ];
