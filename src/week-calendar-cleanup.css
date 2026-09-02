@@ -22,3 +22,8 @@
   flex: 1;
   min-height: 180px;
 }
+
+.week-activity small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
