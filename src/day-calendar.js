@@ -1,12 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 const supabase=createClient(import.meta.env.VITE_SUPABASE_URL,import.meta.env.VITE_SUPABASE_ANON_KEY);
 const groups=[
-{name:'Bewegen & ontspannen',items:[['🌳','Buiten'],['🏃','Bewegen'],['🤸','Turnen'],['🏊','Zwemmen'],['🧘','Yoga'],['🏅','Sportdag']]},
-{name:'Samen & zorg',items:[['🤲','Hartje'],['❤️','Zorg'],['👥','Kleine groep'],['💬','Babbelronde'],['🗣️','Gespreksmoment']]},
+{name:'Bewegen & ontspannen',items:[['🌳','Buiten'],['🛝','Speeltijd'],['🏃','Bewegen'],['🤸','Turnen'],['🏊','Zwemmen'],['🧘','Yoga'],['🏅','Sportdag']]},
+{name:'Samen & zorg',items:[['🤲','Hartje'],['❤️','Zorg'],['👥','Kleine groep'],['🧒⭕','Kring'],['💬','Babbelronde'],['🗣️','Gespreksmoment']]},
+{name:'Dagritme & verzorging',items:[['🚽','WC'],['🍽️╱🍱','Middag'],['🥣','Soep'],['🍎','Fruit']]},
 {name:'Leren',items:[['🔢','Wiskunde'],['🗣️','Taal'],['🔠','Letters'],['✏️','Schrijven'],['🔬','STEM'],['🚦','Verkeer'],['🇫🇷','Frans']]},
-{name:'Lezen, spelen & creatief',items:[['📚','Lezen'],['🎨','Knutselen'],['🎵','Muziek'],['🎲','Opvoedende spelen'],['🧩','Puzzelen'],['🎭','Toneel'],['🎬','Film'],['📖','Voorlezen'],['🗄️','Bib']]},
+{name:'Lezen, spelen & creatief',items:[['📚','Lezen'],['🎨','Knutselen'],['🎵','Muziek'],['🎲','Opvoedende spelen'],['🧩','Puzzelen'],['🎭','Toneel'],['🎬','Film'],['📖','Voorlezen'],['🗄️','Kiesbak'],['🗄️📚','Bib']]},
 {name:'Op stap & bijzonder',items:[['🚌','Bus'],['🚶','Op stap'],['⭐','Speciale act.']]},
-{name:'Feestdagen',items:[['🌷','Moederdag'],['💙','Vaderdag'],['🎉','Feest'],['🎄','Kerst'],['🐣','Pasen'],['👑','Sinterklaas']]}
+{name:'Feestdagen',items:[['🌷','Moederdag'],['💙','Vaderdag'],['🎉','Feest'],['🎄','Kerst'],['🐣','Pasen'],['👑','Sinterklaas'],['🎂','Verjaardag']]}
 ];
 let dragged=null;
 let calendar=null;
