@@ -12,3 +12,9 @@
   width: 1.3em;
   height: 1.3em;
 }
+
+.day-periods .day-period.morning,
+.day-periods .day-period.afternoon {
+  background: #f1f3ef;
+  color: #5f6d63;
+}
