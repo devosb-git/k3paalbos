@@ -1,13 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
+import { getWeekState, updateWeekState } from './week-calendar-store.js';
 const supabase=createClient(import.meta.env.VITE_SUPABASE_URL,import.meta.env.VITE_SUPABASE_ANON_KEY);
-const weekStorageKey='k3paalbos-weekcalendar-v2';let touchDrag=null,overElement=null,calendarTapSelection=null,calendarPlacementBusy=false;
+let touchDrag=null,overElement=null,calendarTapSelection=null,calendarPlacementBusy=false;
 function isTouchPointer(e){return e.pointerType==='touch'||e.pointerType==='pen'}
 function clearOver(){if(overElement){overElement.classList.remove('over');overElement=null}}
 function point(x,y,selector){return document.elementFromPoint(x,y)?.closest(selector)||null}
 function pointTarget(e,s){return point(e.clientX,e.clientY,s)}
 function calendarDayAt(x,y){const exact=point(x,y,'.day:not(.empty)');if(exact)return exact;let best=null,bestDistance=Infinity;document.querySelectorAll('.calendar .day:not(.empty)').forEach(day=>{const r=day.getBoundingClientRect(),pad=14;if(x<r.left-pad||x>r.right+pad||y<r.top-pad||y>r.bottom+pad)return;const dx=x<r.left?r.left-x:x>r.right?x-r.right:0,dy=y<r.top?r.top-y:y>r.bottom?y-r.bottom:0,d=Math.hypot(dx,dy);if(d<bestDistance){best=day;bestDistance=d}});return best}
-function readWeek(){try{return {days:{},activities:{},...(JSON.parse(localStorage.getItem(weekStorageKey))||{})}}catch{return {days:{},activities:{}}}}
-function saveWeek(s){localStorage.setItem(weekStorageKey,JSON.stringify(s))}
+function readWeek(){return {days:{},activities:{},...getWeekState()}}
+function saveWeek(s){updateWeekState(next=>{Object.keys(next).forEach(key=>delete next[key]);Object.assign(next,s)})}
 function rerenderWeek(){window.dispatchEvent(new CustomEvent('k3paalbos:navigate',{detail:{page:'week'}}))}
 function clearCalendarSelection(){document.querySelectorAll('.calendar-activity-token.tap-selected,.icon.tap-selected').forEach(x=>x.classList.remove('tap-selected'));calendarTapSelection=null;document.body.classList.remove('calendar-tap-place')}
 function selectCalendarIcon(source,item){clearCalendarSelection();calendarTapSelection=item;source.classList.add('tap-selected');document.body.classList.add('calendar-tap-place')}
