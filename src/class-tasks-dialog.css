@@ -1,0 +1,105 @@
+.tasks-dialog-open {
+  overflow: hidden;
+}
+
+.tasks-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(48, 48, 39, 0.42);
+  backdrop-filter: blur(3px);
+  animation: tasks-dialog-fade-in 160ms ease-out;
+}
+
+.tasks-dialog {
+  width: min(470px, 100%);
+  padding: 27px;
+  border: 2px solid #eadfce;
+  border-radius: 24px;
+  background: #fffdf9;
+  color: #4f493d;
+  text-align: center;
+  box-shadow: 0 24px 70px rgba(55, 45, 29, 0.24);
+  animation: tasks-dialog-rise 180ms ease-out;
+}
+
+.tasks-dialog-icon {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 14px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #f1d8b7;
+  border-radius: 20px;
+  background: #fff3df;
+  font-size: 38px;
+}
+
+.tasks-dialog h2 {
+  margin: 0;
+  color: #4f493d;
+  font-size: 25px;
+}
+
+.tasks-dialog p {
+  margin: 10px auto 22px;
+  max-width: 390px;
+  color: #766f63;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.tasks-dialog-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.tasks-dialog-actions button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 13px;
+  font-weight: 800;
+}
+
+.tasks-dialog-cancel {
+  border: 2px solid #d9e5cf;
+  background: #f4faef;
+  color: #4f654b;
+}
+
+.tasks-dialog-confirm {
+  border: 2px solid #efc995;
+  background: #f2a94f;
+  color: #493019;
+  box-shadow: 0 5px 13px rgba(139, 90, 39, 0.16);
+}
+
+.tasks-dialog-actions button:hover,
+.tasks-dialog-actions button:focus-visible {
+  transform: translateY(-1px);
+  outline: 3px solid rgba(79, 154, 97, 0.22);
+  outline-offset: 2px;
+}
+
+@keyframes tasks-dialog-fade-in {
+  from { opacity: 0; }
+}
+
+@keyframes tasks-dialog-rise {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+}
+
+@media (max-width: 520px) {
+  .tasks-dialog { padding: 22px 17px; }
+  .tasks-dialog-actions { flex-direction: column-reverse; }
+  .tasks-dialog-actions button { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tasks-dialog-overlay,
+  .tasks-dialog { animation: none; }
+}
