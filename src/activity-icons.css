@@ -1,0 +1,14 @@
+.activity-icon-image {
+  display: block;
+  width: 1.45em;
+  height: 1.45em;
+  max-width: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.placed .activity-icon-image,
+.week-activity .activity-icon-image {
+  width: 1.3em;
+  height: 1.3em;
+}
