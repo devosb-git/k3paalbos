@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import './class-tasks.css';
+import './class-tasks-dialog.css';
 
 const supabase=createClient(import.meta.env.VITE_SUPABASE_URL,import.meta.env.VITE_SUPABASE_ANON_KEY);
 const tasks=[['first_in_line','🚶','Eerste in de rij'],['schoolbags','🎒','Boekentassen'],['jackets','🧥','Jassen'],['bottles','🍼','Flessen'],['mail','✉️','Briefwisseling'],['wipe_table','🧽','Tafel poetsen'],['sweep','🧹','Vegen'],['empty_compost','🌱','Compost legen'],['water_plants','🪴','Planten water geven'],['update_calendar','📅','Kalender aanvullen']].map(([key,icon,label])=>({key,icon,label}));
@@ -34,6 +35,34 @@ function render(){
 function bind(canEdit){document.querySelector('#tasks-logout').onclick=()=>supabase.auth.signOut();document.querySelectorAll('[data-task-go]').forEach(b=>b.onclick=()=>go(b.dataset.taskGo));if(!canEdit)return;document.querySelector('#roll-tasks').onclick=rollTasks;document.querySelector('#save-students').onclick=saveStudents;document.querySelector('#set-reset-password')?.addEventListener('click',setResetPassword);document.querySelector('#change-password')?.addEventListener('click',changePassword);document.querySelector('#reset-tasks').onclick=resetAll;document.querySelector('#new-school-year').onclick=newSchoolYear;}
 function showStatus(message,error=false){statusMessage=message;statusError=error;render()}
 
+function confirmReroll(){
+ return new Promise(resolve=>{
+  const previousFocus=document.activeElement;
+  const overlay=document.createElement('div');
+  overlay.className='tasks-dialog-overlay';
+  overlay.innerHTML=`<section class="tasks-dialog" role="dialog" aria-modal="true" aria-labelledby="tasks-dialog-title" aria-describedby="tasks-dialog-description"><div class="tasks-dialog-icon" aria-hidden="true">🎲</div><h2 id="tasks-dialog-title">Er bestaat al een verdeling</h2><p id="tasks-dialog-description">Er is al een taakverdeling voor deze week. Wil je opnieuw dobbelen? De huidige verdeling wordt vervangen door een nieuwe.</p><div class="tasks-dialog-actions"><button type="button" class="tasks-dialog-cancel">Verdeling behouden</button><button type="button" class="tasks-dialog-confirm"><span aria-hidden="true">🎲</span> Opnieuw dobbelen</button></div></section>`;
+  document.body.appendChild(overlay);
+  document.body.classList.add('tasks-dialog-open');
+  const cancel=overlay.querySelector('.tasks-dialog-cancel');
+  const confirm=overlay.querySelector('.tasks-dialog-confirm');
+  const buttons=[cancel,confirm];
+  const close=result=>{document.removeEventListener('keydown',onKeydown);overlay.remove();document.body.classList.remove('tasks-dialog-open');previousFocus?.focus?.();resolve(result)};
+  const onKeydown=event=>{
+   if(event.key==='Escape'){event.preventDefault();close(false);return}
+   if(event.key==='Tab'){
+    const current=buttons.indexOf(document.activeElement);
+    if(event.shiftKey&&current<=0){event.preventDefault();confirm.focus()}
+    else if(!event.shiftKey&&current===buttons.length-1){event.preventDefault();cancel.focus()}
+   }
+  };
+  cancel.onclick=()=>close(false);
+  confirm.onclick=()=>close(true);
+  overlay.onclick=event=>{if(event.target===overlay)close(false)};
+  document.addEventListener('keydown',onKeydown);
+  cancel.focus();
+ });
+}
+
 async function saveStudents(){
  const namesText=document.querySelector('#student-editor').value;
  const password=document.querySelector('#students-password').value;
@@ -50,9 +79,10 @@ async function saveStudents(){
 
 async function rollTasks(){
  if(students.length<2)return showStatus('Voeg eerst minstens twee leerlingen toe.',true);
+ if((currentAssignments.length||currentSunshine)&&!await confirmReroll())return showStatus('De bestaande verdeling bleef behouden.');
  statusMessage='De dobbelsteen rolt…';statusError=false;render();document.querySelector('#roll-tasks')?.classList.add('rolling');await new Promise(r=>setTimeout(r,850));
  const week=mondayKey();
- if(currentAssignments.length||currentSunshine){if(!confirm('Er bestaat al een verdeling voor deze week. Opnieuw dobbelen? De huidige week wordt vervangen.')){await loadData();return showStatus('De bestaande verdeling bleef behouden.');}await supabase.from('class_task_assignments').delete().eq('week_start',week);await supabase.from('class_week_sunshine').delete().eq('week_start',week);}
+ if(currentAssignments.length||currentSunshine){await supabase.from('class_task_assignments').delete().eq('week_start',week);await supabase.from('class_week_sunshine').delete().eq('week_start',week);}
  const {data:history,error}=await supabase.from('class_task_assignments').select('task_key,student_id,task_cycle,week_start');if(error)return showStatus(error.message,true);
  const activeIds=new Set(students.map(s=>s.id));const newRows=[];const weekLoad=new Map(students.map(s=>[s.id,0]));
  for(const task of tasks){const taskHistory=(history||[]).filter(h=>h.task_key===task.key);let cycle=Math.max(1,...taskHistory.map(h=>h.task_cycle||1));let used=new Set(taskHistory.filter(h=>(h.task_cycle||1)===cycle&&activeIds.has(h.student_id)).map(h=>h.student_id));if(used.size>=students.length){cycle++;used=new Set()}const picks=[];while(picks.length<2){let candidates=students.filter(s=>!picks.includes(s.id)&&!used.has(s.id));if(!candidates.length){cycle++;used=new Set();candidates=students.filter(s=>!picks.includes(s.id))}candidates=shuffle(candidates).sort((a,b)=>(weekLoad.get(a.id)||0)-(weekLoad.get(b.id)||0));const chosen=candidates[0];if(!chosen)break;picks.push(chosen.id);used.add(chosen.id);weekLoad.set(chosen.id,(weekLoad.get(chosen.id)||0)+1);newRows.push({week_start:week,task_key:task.key,slot:picks.length,student_id:chosen.id,task_cycle:cycle,created_by:profile.id});}}
