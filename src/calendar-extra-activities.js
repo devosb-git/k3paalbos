@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
+import { getWeekState, updateWeekState } from './week-calendar-store.js';
 
 const supabase=createClient(import.meta.env.VITE_SUPABASE_URL,import.meta.env.VITE_SUPABASE_ANON_KEY);
-const weekStorageKey='k3paalbos-weekcalendar-v2';
 const extraActivities=[
   {icon:'🧱',label:'Hoekenwerk'},
   {icon:'😌',label:'Rust'},
@@ -34,8 +34,7 @@ async function addMonthActivity(day,activity){
 }
 
 function readWeek(){
-  try{return JSON.parse(localStorage.getItem(weekStorageKey))||{}}
-  catch{return {}}
+  return getWeekState();
 }
 
 function addWeekActivity(slot,activity){
@@ -46,7 +45,7 @@ function addWeekActivity(slot,activity){
   if(current.length>=max)return;
   current.push({icon:activity.icon,label:activity.label});
   activities[slot]=current;
-  localStorage.setItem(weekStorageKey,JSON.stringify({...state,activities}));
+  updateWeekState(next=>{next.activities=activities});
   rerender('week');
 }
 
