@@ -185,7 +185,7 @@ function render(navigate, profile) {
   const slots = Array.from({ length: 12 }, (_, i) => calendar.activities.find(a => a.slot === i));
   const slotHtml = slots.map((a, i) => `
     <div class="day-slot ${i === 6 ? 'afternoon-start' : ''} ${a ? '' : 'empty-slot'}" data-slot="${i}">
-      <div class="slot-number">${i + 1}<small>${i < 6 ? 'voormiddag' : 'namiddag'}</small></div>
+      <div class="slot-number">${i + 1}</div>
       ${a ? `<div class="day-activity" draggable="true" data-index="${i}"><span>${activityIconMarkup(a.icon, a.label)}</span><small>${a.label}</small></div>` : ''}
     </div>
   `).join('');
