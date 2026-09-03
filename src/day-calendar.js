@@ -21,10 +21,13 @@ let calendar = null;
 let activitySpotlightTimer = null;
 
 const styles = () => {
-  if (document.getElementById('day-calendar-styles')) return;
+  let s = document.getElementById('day-calendar-styles');
+  if (!s) {
+    s = document.createElement('style');
+    s.id = 'day-calendar-styles';
+    document.head.appendChild(s);
+  }
 
-  const s = document.createElement('style');
-  s.id = 'day-calendar-styles';
   s.textContent = `
 .day-calendar-content{display:flex;flex-direction:column;gap:18px;max-width:1500px;margin:0 auto;padding:0}
 .day-calendar-board,.day-sidebar{width:100%;background:#fff;border:2px solid #dce9db;border-radius:20px;padding:18px;box-shadow:0 6px 18px #234c2712}
@@ -59,7 +62,7 @@ const styles = () => {
 .day-period{padding:9px;text-align:center;border:0;border-radius:12px;font:inherit;font-weight:800;color:#496153;cursor:pointer}
 .day-period.morning{background:#fff5d9}
 .day-period.afternoon{background:#e9f3ff}
-.day-period.morning.active,.day-period.afternoon.active{background:#9fd39a;color:#1f542f}
+.day-period.morning.active,.day-period.afternoon.active{background:#9fd39a!important;color:#1f542f}
 .day-period:disabled{cursor:default;opacity:1}
 .day-sidebar h2{color:#285d39;margin-bottom:4px}
 .day-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
@@ -81,7 +84,6 @@ const styles = () => {
 @media(max-width:650px){.day-calendar-board,.day-sidebar{padding:12px}.day-calendar-title{align-items:flex-start;flex-direction:column}.day-groups{grid-template-columns:1fr}.day-row,.day-slider-wrap,.day-periods{min-width:820px}.day-activity-spotlight-card{width:min(360px,82vw);min-height:min(360px,82vw);padding:24px}.day-activity-spotlight-icon{width:220px;height:220px;font-size:145px}}
 @media(prefers-reduced-motion:reduce){.day-activity-spotlight,.day-activity-spotlight-card{animation:none}.day-activity-spotlight{opacity:1}}
 `;
-  document.head.appendChild(s);
 };
 
 async function loadCalendar() {
@@ -270,14 +272,27 @@ function render(navigate, profile) {
     button.onclick = async () => {
       const period = button.dataset.period;
       const column = period === 'morning' ? 'morning_active' : 'afternoon_active';
-      const nextValue = !Boolean(calendar[column]);
+      const previousValue = Boolean(calendar[column]);
+      const nextValue = !previousValue;
+      const neutralColor = period === 'morning' ? '#fff5d9' : '#e9f3ff';
 
+      calendar[column] = nextValue;
+      button.classList.toggle('active', nextValue);
+      button.setAttribute('aria-pressed', String(nextValue));
+      button.style.background = nextValue ? '#9fd39a' : neutralColor;
+      button.style.color = nextValue ? '#1f542f' : '#496153';
       button.disabled = true;
+
       try {
         await saveDayPeriod(period, nextValue);
-        render(navigate, profile);
+        button.disabled = false;
       } catch (e) {
         console.error(e);
+        calendar[column] = previousValue;
+        button.classList.toggle('active', previousValue);
+        button.setAttribute('aria-pressed', String(previousValue));
+        button.style.background = previousValue ? '#9fd39a' : neutralColor;
+        button.style.color = previousValue ? '#1f542f' : '#496153';
         button.disabled = false;
         alert('De daghelft kon niet worden opgeslagen.');
       }
