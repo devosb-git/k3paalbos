@@ -21,10 +21,13 @@ let calendar = null;
 let activitySpotlightTimer = null;
 
 const styles = () => {
-  if (document.getElementById('day-calendar-styles')) return;
+  let s = document.getElementById('day-calendar-styles');
+  if (!s) {
+    s = document.createElement('style');
+    s.id = 'day-calendar-styles';
+    document.head.appendChild(s);
+  }
 
-  const s = document.createElement('style');
-  s.id = 'day-calendar-styles';
   s.textContent = `
 .day-calendar-content{display:flex;flex-direction:column;gap:18px;max-width:1500px;margin:0 auto;padding:0}
 .day-calendar-board,.day-sidebar{width:100%;background:#fff;border:2px solid #dce9db;border-radius:20px;padding:18px;box-shadow:0 6px 18px #234c2712}
@@ -39,7 +42,6 @@ const styles = () => {
 .day-slot:last-child{border-right:0}
 .day-slot.afternoon-start{border-left:5px solid #8eb39a}
 .slot-number{position:absolute;top:7px;left:0;right:0;text-align:center;font-size:17px;font-weight:800;color:#718176}
-.slot-number small{display:block;font-size:9px;font-weight:600;color:#9aa89e}
 .day-activity{width:100%;min-height:108px;border:2px solid #e0eadf;background:#fff;border-radius:15px;padding:6px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:grab}
 .day-activity span{font-size:46px;line-height:1}
 .day-activity small{font-size:11px;font-weight:700;color:#496153;text-align:center}
@@ -57,9 +59,11 @@ const styles = () => {
 .day-slider-knob:active{cursor:grabbing;transform:translateX(-50%) scale(1.05)}
 .day-slider-knob:disabled{cursor:default;opacity:.65}
 .day-periods{display:grid;grid-template-columns:repeat(2,1fr);min-width:900px;margin-top:8px;gap:8px}
-.day-period{padding:9px;text-align:center;border-radius:12px;font-weight:800;color:#496153}
+.day-period{padding:9px;text-align:center;border:0;border-radius:12px;font:inherit;font-weight:800;color:#496153;cursor:pointer}
 .day-period.morning{background:#fff5d9}
 .day-period.afternoon{background:#e9f3ff}
+.day-period.morning.active,.day-period.afternoon.active{background:#9fd39a!important;color:#1f542f}
+.day-period:disabled{cursor:default;opacity:1}
 .day-sidebar h2{color:#285d39;margin-bottom:4px}
 .day-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
 .day-groups details{border:1px solid #e1eadf;border-radius:12px;overflow:hidden;background:#fff}
@@ -80,13 +84,12 @@ const styles = () => {
 @media(max-width:650px){.day-calendar-board,.day-sidebar{padding:12px}.day-calendar-title{align-items:flex-start;flex-direction:column}.day-groups{grid-template-columns:1fr}.day-row,.day-slider-wrap,.day-periods{min-width:820px}.day-activity-spotlight-card{width:min(360px,82vw);min-height:min(360px,82vw);padding:24px}.day-activity-spotlight-icon{width:220px;height:220px;font-size:145px}}
 @media(prefers-reduced-motion:reduce){.day-activity-spotlight,.day-activity-spotlight-card{animation:none}.day-activity-spotlight{opacity:1}}
 `;
-  document.head.appendChild(s);
 };
 
 async function loadCalendar() {
   const { data, error } = await supabase
     .from('day_calendars')
-    .select('id,arrow_slot')
+    .select('id,arrow_slot,morning_active,afternoon_active')
     .order('created_at')
     .limit(1)
     .single();
@@ -112,6 +115,17 @@ async function saveArrow(slot) {
 
   if (error) throw error;
   calendar.arrow_slot = slot;
+}
+
+async function saveDayPeriod(period, value) {
+  const column = period === 'morning' ? 'morning_active' : 'afternoon_active';
+  const { error } = await supabase
+    .from('day_calendars')
+    .update({ [column]: value, updated_at: new Date().toISOString() })
+    .eq('id', calendar.id);
+
+  if (error) throw error;
+  calendar[column] = value;
 }
 
 async function addActivity(slot, activity) {
@@ -185,7 +199,7 @@ function render(navigate, profile) {
   const slots = Array.from({ length: 12 }, (_, i) => calendar.activities.find(a => a.slot === i));
   const slotHtml = slots.map((a, i) => `
     <div class="day-slot ${i === 6 ? 'afternoon-start' : ''} ${a ? '' : 'empty-slot'}" data-slot="${i}">
-      <div class="slot-number">${i + 1}<small>${i < 6 ? 'voormiddag' : 'namiddag'}</small></div>
+      <div class="slot-number">${i + 1}</div>
       ${a ? `<div class="day-activity" draggable="true" data-index="${i}"><span>${activityIconMarkup(a.icon, a.label)}</span><small>${a.label}</small></div>` : ''}
     </div>
   `).join('');
@@ -233,8 +247,8 @@ function render(navigate, profile) {
               </div>
             </div>
             <div class="day-periods">
-              <div class="day-period morning">☀️ Voormiddag</div>
-              <div class="day-period afternoon">🌤️ Namiddag</div>
+              <button type="button" class="day-period morning ${calendar.morning_active ? 'active' : ''}" data-period="morning" aria-pressed="${Boolean(calendar.morning_active)}" ${canEdit ? '' : 'disabled'}>☀️ Voormiddag</button>
+              <button type="button" class="day-period afternoon ${calendar.afternoon_active ? 'active' : ''}" data-period="afternoon" aria-pressed="${Boolean(calendar.afternoon_active)}" ${canEdit ? '' : 'disabled'}>🌤️ Namiddag</button>
             </div>
           </div>
         </section>
@@ -253,6 +267,37 @@ function render(navigate, profile) {
   document.querySelectorAll('.nav-item[data-page]').forEach(b => b.onclick = () => navigate(b.dataset.page));
 
   if (!canEdit) return;
+
+  document.querySelectorAll('.day-period[data-period]').forEach(button => {
+    button.onclick = async () => {
+      const period = button.dataset.period;
+      const column = period === 'morning' ? 'morning_active' : 'afternoon_active';
+      const previousValue = Boolean(calendar[column]);
+      const nextValue = !previousValue;
+      const neutralColor = period === 'morning' ? '#fff5d9' : '#e9f3ff';
+
+      calendar[column] = nextValue;
+      button.classList.toggle('active', nextValue);
+      button.setAttribute('aria-pressed', String(nextValue));
+      button.style.background = nextValue ? '#9fd39a' : neutralColor;
+      button.style.color = nextValue ? '#1f542f' : '#496153';
+      button.disabled = true;
+
+      try {
+        await saveDayPeriod(period, nextValue);
+        button.disabled = false;
+      } catch (e) {
+        console.error(e);
+        calendar[column] = previousValue;
+        button.classList.toggle('active', previousValue);
+        button.setAttribute('aria-pressed', String(previousValue));
+        button.style.background = previousValue ? '#9fd39a' : neutralColor;
+        button.style.color = previousValue ? '#1f542f' : '#496153';
+        button.disabled = false;
+        alert('De daghelft kon niet worden opgeslagen.');
+      }
+    };
+  });
 
   document.querySelector('#day-clear').onclick = async () => {
     try {
