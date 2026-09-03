@@ -225,11 +225,11 @@ function render(navigate, profile) {
           <div class="day-calendar-scroll">
             <div class="day-row">${slotHtml}</div>
             <div class="day-slider-wrap">
-              <div class="day-slider-label">Sleep de pijl naar links of rechts. Hij klikt vast onder één van de 12 activiteiten.</div>
+              <div class="day-slider-label">Sleep de pijl naar links of rechts. Tik op de pijl om de huidige activiteit opnieuw te tonen.</div>
               <div class="day-slider">
                 <div class="day-slider-track"></div>
                 <div class="day-slider-points">${Array.from({ length: 12 }, () => '<span class="day-slider-point"></span>').join('')}</div>
-                <button class="day-slider-knob" style="left:${arrowLeft}" aria-label="Verplaats de pijl" ${canEdit ? '' : 'disabled'}>↑</button>
+                <button class="day-slider-knob" style="left:${arrowLeft}" aria-label="Toon huidige activiteit of verplaats de pijl" ${canEdit ? '' : 'disabled'}>↑</button>
               </div>
             </div>
             <div class="day-periods">
@@ -243,7 +243,7 @@ function render(navigate, profile) {
           <h2>Activiteiten</h2>
           <p>Sleep een pictogram naar een vakje. Er kan maar één activiteit per vakje.</p>
           <div class="day-groups">${groupsHtml}</div>
-          <div class="day-tip">👉 Sleep de pijl op de slider naar de volgende activiteit. Er is altijd maar één pijl en die wijst naar het vakje erboven.</div>
+          <div class="day-tip">👉 Sleep de pijl op de slider naar de volgende activiteit. Tik op de pijl om de huidige activiteit nog eens groot te tonen.</div>
         </section>
       </section>
     </main>
@@ -303,7 +303,11 @@ function bindArrowSlider(navigate, profile) {
   if (!slider || !knob) return;
 
   let active = false;
+  let moved = false;
+  let startX = 0;
+  let startY = 0;
   let pendingSlot = Math.max(0, Math.min(11, Number(calendar.arrow_slot) || 0));
+  const dragThreshold = 7;
 
   const position = e => {
     const rect = slider.getBoundingClientRect();
@@ -314,20 +318,31 @@ function bindArrowSlider(navigate, profile) {
 
   knob.addEventListener('pointerdown', e => {
     active = true;
+    moved = false;
+    startX = e.clientX;
+    startY = e.clientY;
+    pendingSlot = Math.max(0, Math.min(11, Number(calendar.arrow_slot) || 0));
     knob.setPointerCapture(e.pointerId);
-    position(e);
   });
 
   knob.addEventListener('pointermove', e => {
-    if (active) position(e);
+    if (!active) return;
+    if (!moved && Math.hypot(e.clientX - startX, e.clientY - startY) >= dragThreshold) moved = true;
+    if (moved) position(e);
   });
 
   knob.addEventListener('pointerup', async e => {
     if (!active) return;
     active = false;
-    position(e);
 
     const previousSlot = Math.max(0, Math.min(11, Number(calendar.arrow_slot) || 0));
+
+    if (!moved) {
+      showActivitySpotlight(previousSlot);
+      return;
+    }
+
+    position(e);
 
     try {
       await saveArrow(pendingSlot);
@@ -338,6 +353,11 @@ function bindArrowSlider(navigate, profile) {
       alert('De pijl kon niet worden opgeslagen.');
       render(navigate, profile);
     }
+  });
+
+  knob.addEventListener('pointercancel', () => {
+    active = false;
+    moved = false;
   });
 
   knob.addEventListener('keydown', async e => {

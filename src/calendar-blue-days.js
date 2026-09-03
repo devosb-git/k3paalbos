@@ -67,7 +67,7 @@ async function decorateCalendarBlueDays() {
       if (!noSchool) {
         noSchool = document.createElement('div');
         noSchool.className = 'wednesday-no-school';
-        noSchool.innerHTML = '<span>🌙</span><small>Geen school</small>';
+        noSchool.innerHTML = '<small>Geen school</small>';
         day.appendChild(noSchool);
       }
     } else {
