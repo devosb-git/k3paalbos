@@ -16,12 +16,24 @@
   font-size: 44px;
 }
 
-.compact-picker-layout .week-picker-slot {
+.compact-picker-layout button.week-picker-slot {
   min-height: 76px !important;
+  height: 76px !important;
 }
 
-.compact-picker-layout .week-picker-slot.filled {
-  min-height: 76px;
+.compact-picker-layout div.week-picker-slot.filled {
+  min-height: 76px !important;
+  height: 76px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible;
+}
+
+.compact-picker-layout div.week-picker-slot.filled > button.week-picker-slot.filled {
+  min-height: 76px !important;
+  height: 76px !important;
   padding-top: 2px;
   padding-bottom: 2px;
 }
