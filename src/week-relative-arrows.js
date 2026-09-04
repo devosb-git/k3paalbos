@@ -28,8 +28,8 @@ function addStyles(){
     .relative-arrow-image{width:17px;height:17px;display:block}
     .relative-arrow-single.left{transform:rotate(90deg)}
     .relative-arrow-single.right{transform:rotate(-90deg)}
-    .relative-arrow-pair{gap:0;width:25px;flex-direction:row!important}
-    .relative-arrow-pair .relative-arrow-unit{width:12px;height:17px;display:inline-flex;align-items:center;justify-content:center;overflow:visible;flex:0 0 12px}
+    .relative-arrow-pair{gap:0;width:34px;flex-direction:row!important}
+    .relative-arrow-pair .relative-arrow-unit{width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;overflow:visible;flex:0 0 17px}
     .relative-arrow-pair .relative-arrow-image{width:15px;height:15px;display:block}
     .relative-arrow-pair.left-double .relative-arrow-unit{transform:rotate(90deg)}
     .relative-arrow-pair.right-double .relative-arrow-unit{transform:rotate(-90deg)}
