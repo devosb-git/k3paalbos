@@ -30,3 +30,16 @@
 .compact-picker-layout .activity-zone.wednesday-zone {
   min-height: 0 !important;
 }
+
+.compact-picker-layout .week-picker-head-button.empty {
+  font-size: 0 !important;
+}
+
+.compact-picker-layout .week-picker-head-button.empty::after {
+  content: "Dag";
+  font-size: 12px;
+}
+
+.compact-picker-layout .week-picker-head-button.number.empty::after {
+  content: "Cijfer";
+}
