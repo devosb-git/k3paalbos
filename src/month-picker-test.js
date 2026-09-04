@@ -27,6 +27,10 @@ function addStyles(){
     .content.month-popup-layout>.calendar-wrap{grid-column:1!important;width:100%;max-width:none!important}
     .content.month-popup-layout .day:not(.empty){cursor:pointer}
     .content.month-popup-layout .day:not(.empty):hover{box-shadow:inset 0 0 0 2px #cfe0cb}
+    .content.month-popup-layout .day-items{display:flex;flex-direction:column;flex-wrap:nowrap;width:100%}
+    .content.month-popup-layout .day-items .placed{width:100%;max-width:none}
+    .content.month-popup-layout .day-items .placed small{flex:1;min-width:0}
+    .content.month-popup-layout .day-items .placed .remove{margin-left:auto;flex:0 0 auto}
     .week-picker-popover{position:fixed;z-index:9999;width:min(370px,calc(100vw - 16px));max-height:min(390px,calc(100vh - 16px));overflow:auto;background:#fff;border:2px solid #d8e7d5;border-radius:17px;box-shadow:0 14px 36px #234c2730;padding:10px}
     .week-picker-popover-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
     .week-picker-popover-head strong{color:#31593b;font-size:14px}
