@@ -1,0 +1,3 @@
+.week-picker-body.week-picker-simple-grid.relative-terms-list {
+  grid-template-columns: 1fr !important;
+}
