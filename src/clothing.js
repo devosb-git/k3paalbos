@@ -4,9 +4,10 @@ import spritePart1 from './clothing-builder/sprite-part-1.js';
 import spritePart2 from './clothing-builder/sprite-part-2.js';
 import spritePart3 from './clothing-builder/sprite-part-3.js';
 import spritePart4 from './clothing-builder/sprite-part-4.js';
+import spritePart5 from './clothing-builder/sprite-part-5.js';
 
 const supabase=createClient(import.meta.env.VITE_SUPABASE_URL,import.meta.env.VITE_SUPABASE_ANON_KEY);
-const spriteUrl=`data:image/webp;base64,${spritePart0}${spritePart1}${spritePart2}${spritePart3}${spritePart4}`;
+const spriteUrl=`data:image/webp;base64,${spritePart0}${spritePart1}${spritePart2}${spritePart3}${spritePart4}${spritePart5}`;
 const storageKey='k3paalbos-clothing-builder-v1';
 
 const modelIndex={
