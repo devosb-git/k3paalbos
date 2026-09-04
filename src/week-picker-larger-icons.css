@@ -26,3 +26,7 @@
   font-size: 10px;
   line-height: 1;
 }
+
+.compact-picker-layout .activity-zone.wednesday-zone {
+  min-height: 0 !important;
+}
