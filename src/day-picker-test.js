@@ -21,10 +21,7 @@ function addStyles(){
   const style=document.createElement('style');
   style.id='day-picker-test-styles';
   style.textContent=`
-    .day-calendar-content .day-sidebar>h2,
-    .day-calendar-content .day-sidebar>p,
-    .day-calendar-content .day-sidebar .day-groups{display:none!important}
-    .day-calendar-content .day-sidebar .day-tip{margin-top:0}
+    .day-calendar-content .day-sidebar{display:none!important}
     .day-slot.empty-slot{cursor:pointer}
     .day-slot.empty-slot:hover{background:#f5faf3}
     .week-picker-popover{position:fixed;z-index:9999;width:min(370px,calc(100vw - 16px));max-height:min(390px,calc(100vh - 16px));overflow:auto;background:#fff;border:2px solid #d8e7d5;border-radius:17px;box-shadow:0 14px 36px #234c2730;padding:10px}
