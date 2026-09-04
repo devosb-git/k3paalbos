@@ -1,79 +1,179 @@
-import './clothing-temperature-size.css';
 import { createClient } from '@supabase/supabase-js';
-import tshirt from './clothing/tshirt.png';
-import sweater from './clothing/sweater.png';
-import longPants from './clothing/long-pants.png';
-import jacket from './clothing/jacket.png';
-import sunglasses from './clothing/sunglasses.png';
-import scarf from './clothing/scarf.png';
-import gloves from './clothing/gloves.png';
-import hat from './clothing/hat.png';
-import shorts from './clothing/shorts.png';
-import thermometer from './clothing/thermometer.svg';
-import childDressed from './clothing/child-dressed.svg';
-import koud from './clothing/koud.png';
-import koel from './clothing/koel.png';
-import warm from './clothing/warm.png';
-import heelWarm from './clothing/heel-warm.png';
+import spritePart0 from './clothing-builder/sprite-part-0.js';
+import spritePart1 from './clothing-builder/sprite-part-1.js';
+import spritePart2 from './clothing-builder/sprite-part-2.js';
+import spritePart3 from './clothing-builder/sprite-part-3.js';
+import spritePart4 from './clothing-builder/sprite-part-4.js';
 
-const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
-const temps = [
- ['very-cold','Zeer koud',koud,'❄️'],
- ['cold','Koud',koel,'🧣'],
- ['warm','Warm',warm,'☀️'],
- ['very-warm','Zeer warm',heelWarm,'🔥']
+const supabase=createClient(import.meta.env.VITE_SUPABASE_URL,import.meta.env.VITE_SUPABASE_ANON_KEY);
+const spriteUrl=`data:image/webp;base64,${spritePart0}${spritePart1}${spritePart2}${spritePart3}${spritePart4}`;
+const storageKey='k3paalbos-clothing-builder-v1';
+
+const modelIndex={
+  meisje:{
+    'neutraal':32,'korte-broek':6,'lange-broek':18,'zwembroek':33,
+    'korte-broek-regenjas':7,'korte-broek-regenjas-laarzen':8,'korte-broek-regenjas-schoenen':9,
+    'korte-broek-trui':10,'korte-broek-trui-laarzen':11,'korte-broek-trui-schoenen':12,
+    'korte-broek-tshirt':13,'korte-broek-tshirt-laarzen':14,'korte-broek-tshirt-laarzen-zomer':15,'korte-broek-tshirt-schoenen':16,'korte-broek-tshirt-schoenen-zomer':17,
+    'lange-broek-regenjas':19,'lange-broek-regenjas-laarzen':20,'lange-broek-regenjas-schoenen':21,
+    'lange-broek-trui':22,'lange-broek-trui-laarzen':23,'lange-broek-trui-schoenen':24,
+    'lange-broek-tshirt':25,'lange-broek-tshirt-laarzen':26,'lange-broek-tshirt-schoenen':27,
+    'lange-broek-winterjas-laarzen':28,'lange-broek-winterjas-laarzen-winter':29,'lange-broek-winterjas-schoenen':30,'lange-broek-winterjas-schoenen-winter':31,
+    'zwembroek-schoenen':34,'zwembroek-schoenen-zomer':35
+  },
+  jongen:{
+    'lange-broek-winterjas-schoenen':0,'lange-broek-winterjas-schoenen-winter':1,'neutraal':2,'zwembroek':3,'zwembroek-schoenen':4,'zwembroek-schoenen-zomer':5,
+    'korte-broek':36,'korte-broek-regenjas':37,'korte-broek-regenjas-laarzen':38,'korte-broek-regenjas-schoenen':39,
+    'korte-broek-trui':40,'korte-broek-trui-laarzen':41,'korte-broek-trui-schoenen':42,
+    'korte-broek-tshirt':43,'korte-broek-tshirt-laarzen':44,'korte-broek-tshirt-laarzen-zomer':45,'korte-broek-tshirt-schoenen':46,'korte-broek-tshirt-schoenen-zomer':47,
+    'lange-broek':48,'lange-broek-regenjas':49,'lange-broek-regenjas-laarzen':50,'lange-broek-regenjas-schoenen':51,
+    'lange-broek-trui':52,'lange-broek-trui-laarzen':53,'lange-broek-trui-schoenen':54,
+    'lange-broek-tshirt':55,'lange-broek-tshirt-laarzen':56,'lange-broek-tshirt-schoenen':57,
+    'lange-broek-winterjas-laarzen':58,'lange-broek-winterjas-laarzen-winter':59
+  }
+};
+
+const buttonIndex={
+  'korte-broek':0,'laarzen':1,'lange-broek':2,'regenjas':3,'trui':4,'tshirt':5,
+  'winter':6,'winterjas':7,'zomer':8,'zwembroek':9,'schoenen':10
+};
+
+const rows=[
+  {id:'pants',title:'1. Broeken',hint:'Kies eerst een broek.',options:[['korte-broek','Korte broek'],['lange-broek','Lange broek'],['zwembroek','Zwembroek']]},
+  {id:'top',title:'2. Bovenkledij',hint:'Kies daarna wat je bovenaan aantrekt.',options:[['tshirt','T-shirt'],['trui','Trui'],['regenjas','Regenjas'],['winterjas','Winterjas']]},
+  {id:'shoes',title:'3. Schoenen',hint:'Nu mag je schoenen kiezen.',options:[['schoenen','Gewone schoenen'],['laarzen','Laarzen']]},
+  {id:'accessory',title:'4. Accessoires',hint:'Kijk tot slot of je accessoires nodig hebt.',options:[['zomer','Zomeraccessoires'],['winter','Winteraccessoires']]}
 ];
-const clothes = [['tshirt','T-shirt',tshirt],['sweater','Trui',sweater],['long-pants','Lange broek',longPants],['jacket','Jas',jacket],['sunglasses','Zonnebril',sunglasses],['scarf','Sjaal',scarf],['gloves','Handschoenen',gloves],['hat','Muts',hat],['shorts','Korte broek',shorts]].map(([id,label,image]) => ({id,label,image}));
-const key = 'k3paalbos-clothing';
-let state = loadLocal();
-function normaliseTemperature(value){return ({cool:'cold',nice:'warm',hot:'very-warm'})[value] || value || '';}
-function loadLocal(){try{const saved=JSON.parse(localStorage.getItem(key));return saved?{temperature:normaliseTemperature(saved.temperature),clothes:Array.isArray(saved.clothes)?saved.clothes:[]}:{temperature:'',clothes:[]};}catch{return {temperature:'',clothes:[]};}}
-function saveLocal(){localStorage.setItem(key,JSON.stringify(state));}
-const todayKey = () => new Date().toISOString().slice(0,10);
-async function loadState(){try{const {data}=await supabase.from('clothing_daily').select('temperature,clothes').eq('weather_date',todayKey()).maybeSingle();if(data){state={temperature:normaliseTemperature(data.temperature),clothes:Array.isArray(data.clothes)?data.clothes:[]};saveLocal();}}catch{}}
-async function saveState(){saveLocal();const {data:{user}}=await supabase.auth.getUser();if(!user)return;const {error}=await supabase.from('clothing_daily').upsert({weather_date:todayKey(),temperature:state.temperature,clothes:state.clothes,updated_by:user.id,updated_at:new Date().toISOString()},{onConflict:'weather_date'});if(error)console.warn('Kleding kon niet in Supabase worden opgeslagen:',error.message);}
-function getFeedback(){
- if(!state.temperature)return {kind:'think',icon:'🌡️',text:'Kies eerst hoe het buiten voelt.'};
- if(!state.clothes.length)return {kind:'think',icon:'👆',text:'Kies nu zelf de kleren die erbij passen.'};
- const has=id=>state.clothes.includes(id);
- const winterExtras=['sweater','scarf','gloves','hat'].filter(has).length;
- let fits=false;
- if(state.temperature==='very-cold')fits=has('jacket')&&has('long-pants')&&winterExtras>=2;
- if(state.temperature==='cold')fits=has('long-pants')&&(has('sweater')||has('jacket'))&&!has('shorts');
- if(state.temperature==='warm')fits=has('tshirt')&&(has('shorts')||has('long-pants'))&&!has('scarf')&&!has('gloves')&&!has('hat');
- if(state.temperature==='very-warm')fits=has('tshirt')&&has('shorts')&&!has('sweater')&&!has('jacket')&&!has('scarf')&&!has('gloves')&&!has('hat');
- if(fits)return {kind:'good',icon:'🦊',text:'Goed nagedacht! Deze kleren passen bij het weer.'};
- return state.temperature==='cold'||state.temperature==='very-cold'
-  ?{kind:'try',icon:'🥶',text:'Brrr… zou je het zo warm genoeg hebben? Kijk nog eens goed.'}
-  :{kind:'try',icon:'🥵',text:'Oei… zou je het zo niet te warm krijgen? Kijk nog eens goed.'};
+
+function emptyState(){return {pants:'',top:'',shoes:'',accessory:''};}
+function loadState(){
+  try{return {...emptyState(),...JSON.parse(localStorage.getItem(storageKey)||'{}')};}
+  catch{return emptyState();}
 }
+let state=loadState();
+function saveState(){localStorage.setItem(storageKey,JSON.stringify(state));}
+
+function modelKey(){
+  if(!state.pants)return 'neutraal';
+  if(state.pants==='zwembroek'){
+    if(!state.shoes)return 'zwembroek';
+    return state.accessory==='zomer'?'zwembroek-schoenen-zomer':'zwembroek-schoenen';
+  }
+  let key=state.pants;
+  if(state.top)key+=`-${state.top}`;
+  if(state.shoes)key+=`-${state.shoes}`;
+  if(state.accessory)key+=`-${state.accessory}`;
+  return key;
+}
+
+function modelSprite(gender){
+  const key=modelKey();
+  const fallback=gender==='meisje'?32:2;
+  const index=modelIndex[gender][key]??fallback;
+  const col=index%10,row=Math.floor(index/10);
+  return `<div class="clothing-model-frame" aria-label="${gender==='meisje'?'Meisje':'Jongen'}"><div class="clothing-model-sprite" style="--mx:${-col*90}px;--my:${-row*135}px"></div></div>`;
+}
+
+function buttonSprite(id){
+  const index=buttonIndex[id],col=index%5,row=Math.floor(index/5);
+  return `<span class="clothing-choice-image" style="--bx:${-col*180}px;--by:${-(810+row*86)}px"></span>`;
+}
+
+function rowEnabled(row){
+  if(row==='pants')return true;
+  if(row==='top')return !!state.pants&&state.pants!=='zwembroek';
+  if(row==='shoes')return !!state.pants&&(state.pants==='zwembroek'||!!state.top);
+  if(row==='accessory')return !!state.shoes;
+  return false;
+}
+
+function optionAllowed(row,id){
+  if(!rowEnabled(row))return false;
+  if(row==='top'){
+    if(state.pants==='korte-broek'&&id==='winterjas')return false;
+    return state.pants==='korte-broek'||state.pants==='lange-broek';
+  }
+  if(row==='shoes'&&state.pants==='zwembroek')return id==='schoenen';
+  if(row==='accessory'){
+    if(id==='zomer')return (state.pants==='korte-broek'&&state.top==='tshirt')||state.pants==='zwembroek';
+    if(id==='winter')return state.pants==='lange-broek'&&state.top==='winterjas';
+  }
+  return true;
+}
+
+function rowMessage(row){
+  if(row==='top'&&state.pants==='zwembroek')return 'Bij een zwembroek ga je meteen verder naar de schoenen.';
+  if(row==='top'&&!state.pants)return 'Kies eerst een broek.';
+  if(row==='shoes'&&!rowEnabled('shoes'))return state.pants?'Kies eerst de bovenkledij.':'Kies eerst een broek en bovenkledij.';
+  if(row==='accessory'&&!state.shoes)return 'Kies eerst de schoenen.';
+  if(row==='accessory'&&state.shoes&&!optionAllowed('accessory','zomer')&&!optionAllowed('accessory','winter'))return 'Bij deze combinatie zijn geen extra accessoires nodig.';
+  return '';
+}
+
+function renderRows(){
+  return rows.map(row=>{
+    const enabled=rowEnabled(row.id);
+    const message=rowMessage(row.id);
+    const options=row.options.map(([id,label])=>{
+      const allowed=optionAllowed(row.id,id);
+      const selected=state[row.id]===id;
+      return `<button type="button" class="clothing-choice ${selected?'selected':''}" data-row="${row.id}" data-value="${id}" ${allowed?'':'disabled'} aria-pressed="${selected}" aria-label="${label}">${buttonSprite(id)}<span class="clothing-choice-check">✓</span></button>`;
+    }).join('');
+    return `<section class="clothing-builder-row ${enabled?'enabled':'locked'}"><div class="clothing-row-copy"><h3>${row.title}</h3><p>${message||row.hint}</p></div><div class="clothing-row-options">${options}</div></section>`;
+  }).join('');
+}
+
 function styles(){
- if(document.getElementById('clothing-styles'))return;
- const s=document.createElement('style');s.id='clothing-styles';
- s.textContent=`
-.clothing-page{min-height:100vh}.clothing-card{max-width:1500px;margin:0 auto;background:#fff;border:2px solid #dce9db;border-radius:18px;box-shadow:0 6px 18px #234c2712;padding:18px}.clothing-section+.clothing-section{border-top:2px solid #e7eee5;margin-top:18px;padding-top:18px}.clothing-heading,.outfit-intro{display:flex;align-items:center;gap:12px;margin-bottom:12px}.clothing-heading img{width:52px;height:52px;object-fit:contain}.clothing-heading h2,.outfit-intro h2{font-size:26px;color:#285d39}.clothing-heading p,.outfit-intro p{color:#718176;margin-top:2px;font-size:14px}.temperature-layout{display:grid;grid-template-columns:130px 1fr;gap:18px;align-items:center}.thermo-card{display:flex;align-items:center;justify-content:center;background:#fff8e9;border:2px solid #f0dfbd;border-radius:18px;padding:10px;min-height:150px}.thermo-card img{width:90px;height:125px;object-fit:contain}.temp-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.temp-option{position:relative;border:2px solid #e1eadf;background:#fbfdf9;border-radius:18px;padding:8px;display:flex;flex-direction:column;align-items:center;cursor:pointer}.temp-option.selected{background:#e8f4e7;border-color:#4f9a61;box-shadow:0 0 0 3px #d7ecd5}.temp-label{font-size:18px;font-weight:800;color:#315d3d;margin-top:-6px}.choice-check{display:none;position:absolute;right:7px;top:7px;width:29px;height:29px;border-radius:50%;background:#3f8d55;color:white;font-size:20px;font-weight:900;align-items:center;justify-content:center}.selected .choice-check{display:flex}.outfit-intro img{width:68px;height:82px;object-fit:contain}.clothes-grid{display:grid;grid-template-columns:repeat(auto-fit,140px);gap:10px;justify-content:center}.clothing-item{position:relative;width:140px;box-sizing:border-box;border:2px solid #e1eadf;background:#fbfdf9;border-radius:15px;padding:6px;display:flex;flex-direction:column;align-items:center;cursor:pointer}.clothing-item.selected{border-color:#4f9a61;background:#e8f4e7;box-shadow:0 0 0 3px #d7ecd5}.clothing-item img{width:100%;height:122px;object-fit:contain}.clothing-item strong{font-size:15px;color:#345e40}.clothing-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:18px}.check-outfit,.clear-outfit{border:0;border-radius:14px;padding:13px 22px;font-size:18px;font-weight:800;cursor:pointer}.check-outfit{background:#4f9a61;color:#fff;box-shadow:0 4px 0 #347345}.check-outfit:disabled{background:#aab8ac;box-shadow:0 4px 0 #89958b;cursor:not-allowed}.clear-outfit{background:#f3eee6;color:#6c6257}.clothing-feedback{max-width:720px;margin:16px auto 0;padding:15px 18px;border-radius:16px;text-align:center;font-size:19px;font-weight:750}.clothing-feedback span{font-size:29px;margin-right:8px}.clothing-feedback.good{background:#e4f4e4;color:#28613a}.clothing-feedback.try{background:#fff1d9;color:#795522}.clothing-feedback.think{background:#f5f1e8;color:#6c6257}.clothing-page .main-nav .nav-item.active{background:#e8f4e7;border-color:#cce2ca;color:#23623a}@media(max-width:900px){.temperature-layout{grid-template-columns:1fr}.thermo-card{display:none}.temp-options{grid-template-columns:repeat(2,minmax(0,1fr))}.clothes-grid{grid-template-columns:repeat(auto-fit,120px)}.clothing-item{width:120px}.clothing-item img{height:105px}}@media(max-width:560px){.clothing-card{padding:12px}.temp-options{gap:9px}.temp-label{font-size:16px}.clothes-grid{grid-template-columns:repeat(auto-fit,102px);gap:7px}.clothing-item{width:102px}.clothing-item img{height:90px}.clothing-item strong{font-size:13px}.clothing-heading h2,.outfit-intro h2{font-size:22px}}`;
- document.head.appendChild(s);
+  if(document.getElementById('clothing-builder-styles'))return;
+  const style=document.createElement('style');
+  style.id='clothing-builder-styles';
+  style.textContent=`
+    .clothing-page{min-height:100vh}.clothing-builder-card{max-width:1500px;margin:0 auto;background:#fff;border:2px solid #dce9db;border-radius:24px;box-shadow:0 8px 24px #234c2712;padding:18px 22px 22px}
+    .clothing-builder-intro{text-align:center;margin:0 auto 8px}.clothing-builder-intro h2{font-size:28px;color:#285d39;margin:0}.clothing-builder-intro p{color:#718176;font-size:14px;margin:4px 0 0}
+    .clothing-children{display:flex;justify-content:center;align-items:flex-end;gap:34px;min-height:250px;padding:4px 0 10px}
+    .clothing-model-frame{width:160px;height:232px;display:grid;place-items:center;overflow:hidden;border-radius:20px;background:#fff}
+    .clothing-model-sprite{width:90px;height:135px;background-image:url('${spriteUrl}');background-repeat:no-repeat;background-size:900px 1068px;background-position:var(--mx) var(--my);transform:scale(1.7);image-rendering:auto}
+    .clothing-builder-row{display:grid;grid-template-columns:220px 1fr;gap:16px;align-items:center;padding:12px 8px;border-top:2px solid #edf2eb}.clothing-builder-row:first-of-type{border-top:0}
+    .clothing-row-copy h3{margin:0;color:#31593b;font-size:20px}.clothing-row-copy p{margin:3px 0 0;color:#718176;font-size:13px;line-height:1.25}.clothing-builder-row.locked .clothing-row-copy{opacity:.65}
+    .clothing-row-options{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+    .clothing-choice{position:relative;width:180px;height:86px;border:2px solid #e2e9df;border-radius:15px;background:#fff;padding:0;overflow:hidden;box-shadow:0 2px 5px #254d2610;transition:.12s}
+    .clothing-choice:not(:disabled):hover{transform:translateY(-2px);border-color:#b8d7b6}.clothing-choice.selected{border-color:#4f9a61;box-shadow:0 0 0 3px #d7ecd5}.clothing-choice:disabled{opacity:.28;filter:grayscale(.35);cursor:not-allowed}
+    .clothing-choice-image{display:block;width:180px;height:86px;background-image:url('${spriteUrl}');background-repeat:no-repeat;background-size:900px 1068px;background-position:var(--bx) var(--by)}
+    .clothing-choice-check{display:none;position:absolute;right:6px;top:6px;width:25px;height:25px;border-radius:50%;background:#4f9a61;color:#fff;font-size:17px;font-weight:900;align-items:center;justify-content:center}.clothing-choice.selected .clothing-choice-check{display:flex}
+    .clothing-builder-actions{display:flex;justify-content:center;margin-top:14px}.clothing-reset{border:0;border-radius:13px;background:#f3eee6;color:#6c6257;padding:10px 17px;font-weight:800}
+    .clothing-page .main-nav .nav-item.active{background:#e8f4e7;border-color:#cce2ca;color:#23623a}
+    @media(max-width:900px){.clothing-builder-row{grid-template-columns:1fr}.clothing-row-copy{text-align:center}.clothing-children{gap:12px}.clothing-choice{width:162px;height:78px}.clothing-choice-image{transform:scale(.9);transform-origin:top left}.clothing-row-options{gap:7px}}
+    @media(max-width:560px){.clothing-builder-card{padding:12px}.clothing-children{min-height:205px}.clothing-model-frame{width:132px;height:195px}.clothing-model-sprite{transform:scale(1.42)}.clothing-choice{width:144px;height:69px}.clothing-choice-image{transform:scale(.8)}.clothing-builder-intro h2{font-size:23px}}
+  `;
+  document.head.appendChild(style);
+}
+
+function applyChoice(row,value){
+  if(!optionAllowed(row,value))return;
+  if(row==='pants')state={pants:value,top:'',shoes:'',accessory:''};
+  if(row==='top')state={...state,top:value,shoes:'',accessory:''};
+  if(row==='shoes')state={...state,shoes:value,accessory:''};
+  if(row==='accessory')state={...state,accessory:state.accessory===value?'':value};
+  saveState();
+  refreshBuilder();
+}
+
+function refreshBuilder(){
+  const models=document.querySelector('.clothing-children');
+  const rowsBox=document.querySelector('.clothing-builder-rows');
+  if(models)models.innerHTML=modelSprite('meisje')+modelSprite('jongen');
+  if(rowsBox)rowsBox.innerHTML=renderRows();
+  document.querySelectorAll('.clothing-choice[data-row]').forEach(button=>button.onclick=()=>applyChoice(button.dataset.row,button.dataset.value));
 }
 
 export async function showClothing(navigate,profile){
- styles();
- await loadState();
- document.title='Kleding | De Vosjes';
- const name=profile?.display_name || 'Welkom';
- const tempHtml=temps.map(t => `<button class="temp-option ${state.temperature===t[0]?'selected':''}" data-temp="${t[0]}" aria-label="${t[1]}" aria-pressed="${state.temperature===t[0]}"><span class="choice-check">✓</span><img class="temp-image" src="${t[2]}" alt=""><span class="temp-label">${t[3]} ${t[1]}</span></button>`).join('');
- const clothesHtml=clothes.map(c => `<button class="clothing-item ${state.clothes.includes(c.id)?'selected':''}" data-clothing="${c.id}" aria-pressed="${state.clothes.includes(c.id)}"><span class="choice-check">✓</span><img src="${c.image}" alt=""><strong>${c.label}</strong></button>`).join('');
- document.querySelector('#app').innerHTML=`<main class="page clothing-page"><header class="topbar"><div class="brand"><div class="fox">🦊</div><div><h1>De Vosjes</h1><p>Wat trek ik aan?</p></div></div><nav class="main-nav"><button class="nav-item" data-page="calendar"><span>📅</span><small>Kalender</small></button><button class="nav-item" data-page="week"><span>🗓️</span><small>Weekkalender</small></button><button class="nav-item active"><span>👕</span><small>Kleding</small></button><button class="nav-item" data-page="weather"><span>🌤️</span><small>Weer</small></button><button class="nav-item" data-page="day"><span>➡️</span><small>Dagkalender</small></button></nav><div class="account">${name} <button id="clothing-logout">Uitloggen</button></div></header><section class="clothing-card"><section class="clothing-section"><div class="clothing-heading"><img src="${thermometer}" alt=""><div><h2>1. Hoe voelt het buiten?</h2><p>Kijk naar het weer en kies samen.</p></div></div><div class="temperature-layout"><div class="thermo-card"><img src="${thermometer}" alt="Thermometer"></div><div class="temp-options">${tempHtml}</div></div></section><section class="clothing-section"><div class="outfit-intro"><img src="${childDressed}" alt=""><div><h2>2. Wat trek je aan?</h2><p>Denk zelf na en kies één of meer kledingstukken.</p></div></div><div class="clothes-grid">${clothesHtml}</div><div class="clothing-actions"><button class="check-outfit" ${!state.temperature||!state.clothes.length?'disabled':''}>🦊 Controleer mijn keuze</button><button class="clear-outfit">Opnieuw kiezen</button></div><div class="clothing-feedback think" hidden></div></section></section></main>`;
- document.querySelector('#clothing-logout').onclick=()=>supabase.auth.signOut();
- document.querySelectorAll('.nav-item[data-page]').forEach(b=>b.onclick=()=>navigate(b.dataset.page));
- const hideFeedback=()=>{document.querySelector('.clothing-feedback').hidden=true;};
- const update=()=>{
-  document.querySelectorAll('.temp-option').forEach(b=>{const selected=state.temperature===b.dataset.temp;b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',String(selected));});
-  document.querySelectorAll('.clothing-item').forEach(b=>{const selected=state.clothes.includes(b.dataset.clothing);b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',String(selected));});
-  document.querySelector('.check-outfit').disabled=!state.temperature||!state.clothes.length;
- };
- const showFeedback=()=>{const result=getFeedback();const box=document.querySelector('.clothing-feedback');box.className=`clothing-feedback ${result.kind}`;box.innerHTML=`<span>${result.icon}</span>${result.text}`;box.hidden=false;};
- document.querySelectorAll('.temp-option').forEach(b=>b.onclick=()=>{state.temperature=b.dataset.temp;hideFeedback();update();void saveState();});
- document.querySelectorAll('.clothing-item').forEach(b=>b.onclick=()=>{const id=b.dataset.clothing;state.clothes=state.clothes.includes(id)?state.clothes.filter(x=>x!==id):[...state.clothes,id];hideFeedback();update();void saveState();});
- document.querySelector('.check-outfit').onclick=showFeedback;
- document.querySelector('.clear-outfit').onclick=()=>{state.clothes=[];hideFeedback();update();void saveState();};
+  styles();
+  state=loadState();
+  document.title='Kleding | De Vosjes';
+  const name=profile?.display_name||'Welkom';
+  document.querySelector('#app').innerHTML=`<main class="page clothing-page"><header class="topbar"><div class="brand"><div class="fox">🦊</div><div><h1>De Vosjes</h1><p>Wat trek ik aan?</p></div></div><nav class="main-nav"><button class="nav-item" data-page="calendar"><span>📅</span><small>Kalender</small></button><button class="nav-item" data-page="week"><span>🗓️</span><small>Weekkalender</small></button><button class="nav-item active"><span>👕</span><small>Kleding</small></button><button class="nav-item" data-page="weather"><span>🌤️</span><small>Weer</small></button><button class="nav-item" data-page="day"><span>➡️</span><small>Dagkalender</small></button></nav><div class="account">${name} <button id="clothing-logout">Uitloggen</button></div></header><section class="clothing-builder-card"><div class="clothing-builder-intro"><h2>Kleed de kinderen aan</h2><p>Werk van boven naar beneden. De volgende rij wordt pas actief wanneer je de vorige keuze hebt gemaakt.</p></div><div class="clothing-children"></div><div class="clothing-builder-rows"></div><div class="clothing-builder-actions"><button type="button" class="clothing-reset">Opnieuw beginnen</button></div></section></main>`;
+  document.querySelector('#clothing-logout').onclick=()=>supabase.auth.signOut();
+  document.querySelectorAll('.nav-item[data-page]').forEach(button=>button.onclick=()=>navigate(button.dataset.page));
+  document.querySelector('.clothing-reset').onclick=()=>{state=emptyState();saveState();refreshBuilder();};
+  refreshBuilder();
 }
