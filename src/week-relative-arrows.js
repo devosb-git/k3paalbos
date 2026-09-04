@@ -9,7 +9,7 @@ const direction={
 
 function arrowMarkup(id){
   const dir=direction[id];
-  if(dir==='left-double'||dir==='right-double')return `<span class="relative-arrow-pair ${dir}">${arrowSvg}${arrowSvg}</span>`;
+  if(dir==='left-double'||dir==='right-double')return `<span class="relative-arrow-pair ${dir}"><span class="relative-arrow-unit">${arrowSvg}</span><span class="relative-arrow-unit">${arrowSvg}</span></span>`;
   return `<span class="relative-arrow-single ${dir}">${arrowSvg}</span>`;
 }
 
@@ -28,10 +28,11 @@ function addStyles(){
     .relative-arrow-image{width:17px;height:17px;display:block}
     .relative-arrow-single.left{transform:rotate(90deg)}
     .relative-arrow-single.right{transform:rotate(-90deg)}
-    .relative-arrow-pair{gap:0;width:24px}
-    .relative-arrow-pair .relative-arrow-image{width:15px;height:15px;margin-right:-5px}
-    .relative-arrow-pair.left-double{transform:rotate(90deg)}
-    .relative-arrow-pair.right-double{transform:rotate(-90deg)}
+    .relative-arrow-pair{gap:0;width:25px;flex-direction:row!important}
+    .relative-arrow-pair .relative-arrow-unit{width:12px;height:17px;display:inline-flex;align-items:center;justify-content:center;overflow:visible;flex:0 0 12px}
+    .relative-arrow-pair .relative-arrow-image{width:15px;height:15px;display:block}
+    .relative-arrow-pair.left-double .relative-arrow-unit{transform:rotate(90deg)}
+    .relative-arrow-pair.right-double .relative-arrow-unit{transform:rotate(-90deg)}
     .week-picker-relative.filled{gap:2px!important;flex-direction:row!important}
     .week-picker-relative .relative-arrow-single,.week-picker-relative .relative-arrow-pair{display:inline-flex;margin:0!important}
     .week-picker-simple.relative-concept-option{display:flex;align-items:center;justify-content:center;gap:3px;min-height:34px;padding-top:6px;padding-bottom:6px}
