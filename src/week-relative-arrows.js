@@ -13,6 +13,12 @@ function arrowMarkup(id){
   return `<span class="relative-arrow-single ${dir}">${arrowSvg}</span>`;
 }
 
+function conceptMarkup(id,label){
+  const arrow=arrowMarkup(id);
+  if(id==='tomorrow'||id==='day-after-tomorrow')return `<span>${label}</span>${arrow}`;
+  return `${arrow}<span>${label}</span>`;
+}
+
 function addStyles(){
   if(document.getElementById('week-relative-arrow-styles'))return;
   const style=document.createElement('style');
@@ -26,9 +32,10 @@ function addStyles(){
     .relative-arrow-pair .relative-arrow-image{width:15px;height:15px;margin-right:-5px}
     .relative-arrow-pair.left-double{transform:rotate(90deg)}
     .relative-arrow-pair.right-double{transform:rotate(-90deg)}
-    .week-picker-relative .relative-arrow-single,.week-picker-relative .relative-arrow-pair{display:flex;margin:0 auto 1px}
-    .week-picker-simple .relative-arrow-single,.week-picker-simple .relative-arrow-pair{margin-right:6px}
-    .week-picker-simple.relative-concept-option{display:flex;align-items:center;justify-content:center;min-height:34px;padding-top:6px;padding-bottom:6px}
+    .week-picker-relative.filled{gap:2px!important;flex-direction:row!important}
+    .week-picker-relative .relative-arrow-single,.week-picker-relative .relative-arrow-pair{display:inline-flex;margin:0!important}
+    .week-picker-simple.relative-concept-option{display:flex;align-items:center;justify-content:center;gap:3px;min-height:34px;padding-top:6px;padding-bottom:6px}
+    .week-picker-simple.relative-concept-option .relative-arrow-single,.week-picker-simple.relative-concept-option .relative-arrow-pair{margin:0!important}
   `;
   document.head.appendChild(style);
 }
@@ -41,8 +48,9 @@ function enhanceRelativeButtons(){
     const label=Object.keys(labels).find(x=>text.includes(x));
     if(!label||button.dataset.prettyArrow==='1')return;
     button.dataset.prettyArrow='1';
+    const id=labels[label];
     const remove=button.querySelector('.week-relative-remove');
-    button.innerHTML=`${arrowMarkup(labels[label])}<span>${label}</span>`;
+    button.innerHTML=conceptMarkup(id,label);
     if(remove)button.appendChild(remove);
   });
   document.querySelectorAll('.week-picker-popover .week-picker-simple').forEach(button=>{
@@ -51,7 +59,7 @@ function enhanceRelativeButtons(){
     const label=button.textContent.replace(/[←↑→]/g,'').trim();
     button.dataset.prettyArrow='1';
     button.classList.add('relative-concept-option');
-    button.innerHTML=`${arrowMarkup(id)}<span>${label}</span>`;
+    button.innerHTML=conceptMarkup(id,label);
   });
 }
 
