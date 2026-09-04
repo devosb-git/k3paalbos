@@ -17,11 +17,11 @@
 }
 
 .compact-picker-layout .week-picker-slot {
-  min-height: 69px !important;
+  min-height: 76px !important;
 }
 
 .compact-picker-layout .week-picker-slot.filled {
-  min-height: 69px;
+  min-height: 76px;
   padding-top: 2px;
   padding-bottom: 2px;
 }
