@@ -1,0 +1,28 @@
+.compact-picker-layout .week-picker-slot .activity-visual {
+  height: 42px !important;
+  min-height: 42px !important;
+}
+
+.compact-picker-layout .week-picker-slot .activity-visual > img {
+  max-height: 42px !important;
+  max-width: 62px !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain;
+}
+
+.compact-picker-layout .week-picker-slot .activity-visual > .activity-icon-emoji,
+.compact-picker-layout .week-picker-slot .activity-visual {
+  font-size: 36px;
+}
+
+.compact-picker-layout .week-picker-slot.filled {
+  min-height: 58px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+.compact-picker-layout .week-picker-slot .slot-label {
+  font-size: 10px;
+  line-height: 1;
+}
