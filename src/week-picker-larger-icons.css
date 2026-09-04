@@ -16,6 +16,10 @@
   font-size: 44px;
 }
 
+.compact-picker-layout .week-picker-slot {
+  min-height: 69px !important;
+}
+
 .compact-picker-layout .week-picker-slot.filled {
   min-height: 69px;
   padding-top: 2px;
