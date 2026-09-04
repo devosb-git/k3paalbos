@@ -1,11 +1,11 @@
 .compact-picker-layout .week-picker-slot .activity-visual {
-  height: 42px !important;
-  min-height: 42px !important;
+  height: 48px !important;
+  min-height: 48px !important;
 }
 
 .compact-picker-layout .week-picker-slot .activity-visual > img {
-  max-height: 42px !important;
-  max-width: 62px !important;
+  max-height: 48px !important;
+  max-width: 70px !important;
   width: auto !important;
   height: auto !important;
   object-fit: contain;
@@ -13,13 +13,13 @@
 
 .compact-picker-layout .week-picker-slot .activity-visual > .activity-icon-emoji,
 .compact-picker-layout .week-picker-slot .activity-visual {
-  font-size: 36px;
+  font-size: 40px;
 }
 
 .compact-picker-layout .week-picker-slot.filled {
-  min-height: 58px;
-  padding-top: 3px;
-  padding-bottom: 3px;
+  min-height: 64px;
+  padding-top: 2px;
+  padding-bottom: 2px;
 }
 
 .compact-picker-layout .week-picker-slot .slot-label {
