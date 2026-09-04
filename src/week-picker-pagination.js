@@ -39,7 +39,14 @@ function paginateOptions(options) {
   render();
 }
 
+function makeNumberPickerVertical(popover) {
+  const title = popover.querySelector('.week-picker-popover-head strong')?.textContent?.trim();
+  if (title !== 'Kies een cijfer') return;
+  popover.querySelector('.week-picker-body')?.classList.add('days');
+}
+
 function enhancePicker() {
+  document.querySelectorAll('.week-picker-popover').forEach(makeNumberPickerVertical);
   document.querySelectorAll('.week-picker-popover .week-picker-options').forEach(paginateOptions);
 }
 
