@@ -46,7 +46,7 @@ function render(){
     return `<button type="button" class="attendance-student ${present?'present':''}" data-student-id="${student.id}" aria-pressed="${present}">${student.name}</button>`;
   }).join('');
 
-  app().innerHTML=`<main class="page attendance-page">${header()}<section class="attendance-board"><div class="attendance-title"><div><h2>🙋 Aanwezigheden</h2><p>Tik op je naam wanneer je in de klas bent.</p></div><div class="attendance-counter"><strong>${count}</strong><span>van ${students.length||25}</span></div></div><div class="attendance-image-wrap"><img class="attendance-image" src="${imagePath()}" alt="Klas met ${count} aanwezige kinderen"></div><div class="attendance-students">${buttons||'<p class="attendance-empty">Nog geen leerlingen gevonden. Voeg ze eerst toe bij Klastaken.</p>'}</div>${statusMessage?`<p class="attendance-status">${statusMessage}</p>`:''}</section></main>`;
+  app().innerHTML=`<main class="page attendance-page">${header()}<section class="attendance-board"><div class="attendance-visual"><div class="attendance-image-wrap"><img class="attendance-image" src="${imagePath()}" alt="Klas met ${count} aanwezige kinderen"></div><div class="attendance-counter" aria-label="${count} van ${students.length||25} kinderen aanwezig"><strong>${count}</strong><span>/${students.length||25}</span></div></div><div class="attendance-students">${buttons||'<p class="attendance-empty">Nog geen leerlingen gevonden. Voeg ze eerst toe bij Klastaken.</p>'}</div>${statusMessage?`<p class="attendance-status">${statusMessage}</p>`:''}</section></main>`;
 
   document.querySelector('#attendance-logout')?.addEventListener('click',()=>supabase.auth.signOut());
   document.querySelectorAll('.attendance-student').forEach(button=>{
