@@ -2,11 +2,12 @@ const ACTIVITY = 'Hoekenwerk';
 const TARGET_GROUP = 'Lezen, spelen & creatief';
 
 function moveHoekenwerk() {
-  const move = (rootSelector, extraSelector, tokenSelector) => {
+  const move = (rootSelector, extraSelector, tokenFinder) => {
     const root = document.querySelector(rootSelector);
     if (!root) return;
 
-    const token = root.querySelector(`${extraSelector} ${tokenSelector}`);
+    const tokens = [...root.querySelectorAll(`${extraSelector} button` )];
+    const token = tokens.find(tokenFinder);
     if (!token) return;
 
     const target = [...root.querySelectorAll('details')]
@@ -20,30 +21,20 @@ function moveHoekenwerk() {
   move(
     '.content .calendar-activity-groups',
     '[data-extra-month-group]',
-    '[data-extra-calendar-activity="Hoekenwerk"]'
+    button => button.dataset.extraCalendarActivity === ACTIVITY
   );
 
   move(
     '.week-content .activity-groups',
     '[data-extra-week-group]',
-    'button[data-extra-index]'
+    button => button.querySelector('small')?.textContent.trim() === ACTIVITY
   );
 
   move(
     '.day-calendar-content .day-groups',
     '[data-extra-day-group]',
-    'button[data-label="Hoekenwerk"]'
+    button => button.dataset.label === ACTIVITY
   );
-
-  // The week extra palette contains several buttons, so identify Hoekenwerk by label
-  // before moving it.
-  const weekRoot = document.querySelector('.week-content .activity-groups');
-  const weekTarget = [...(weekRoot?.querySelectorAll('details') || [])]
-    .find(details => details.querySelector('summary')?.textContent.trim() === TARGET_GROUP);
-  const weekToken = [...(weekRoot?.querySelectorAll('[data-extra-week-group] button') || [])]
-    .find(button => button.querySelector('small')?.textContent.trim() === ACTIVITY);
-  const weekPalette = weekTarget?.querySelector('.activity-palette');
-  if (weekToken && weekPalette) weekPalette.appendChild(weekToken);
 }
 
 const app = document.querySelector('#app');
