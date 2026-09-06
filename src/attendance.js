@@ -1,6 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import './attendance.css';
 
+const classroomImageModules=import.meta.glob('./classroom/*_kinderen.png',{eager:true,query:'?url',import:'default'});
+const classroomImages=Object.fromEntries(
+  Object.entries(classroomImageModules).map(([path,url])=>{
+    const match=path.match(/\/(\d{2})_kinderen\.png$/);
+    return [match?.[1],url];
+  }).filter(([key])=>key)
+);
+
 const supabase=createClient(import.meta.env.VITE_SUPABASE_URL,import.meta.env.VITE_SUPABASE_ANON_KEY);
 const app=()=>document.querySelector('#app');
 
@@ -21,7 +29,8 @@ function attendanceDate(){
 }
 
 function imagePathForCount(count){
-  return `/src/classroom/${String(Math.min(Math.max(count,0),25)).padStart(2,'0')}_kinderen.png`;
+  const key=String(Math.min(Math.max(count,0),25)).padStart(2,'0');
+  return classroomImages[key]||classroomImages['00']||'';
 }
 
 function imagePath(){
