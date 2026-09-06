@@ -18,7 +18,9 @@ let students=[];
 let presentIds=new Set();
 let statusMessage='';
 let saveQueue=Promise.resolve();
+let initialImagePreloaded=false;
 let imagesPreloaded=false;
+const preloadedImages=[];
 
 function attendanceDate(){
   const now=new Date();
@@ -37,13 +39,27 @@ function imagePath(){
   return imagePathForCount(presentIds.size);
 }
 
+function preloadInitialClassroomImage(){
+  if(initialImagePreloaded)return;
+  const src=imagePathForCount(0);
+  if(!src)return;
+  initialImagePreloaded=true;
+  const image=new Image();
+  image.decoding='async';
+  image.fetchPriority='high';
+  image.src=src;
+  preloadedImages.push(image);
+}
+
 function preloadClassroomImages(){
   if(imagesPreloaded)return;
   imagesPreloaded=true;
-  for(let count=0;count<=25;count++){
+  preloadInitialClassroomImage();
+  for(let count=1;count<=25;count++){
     const image=new Image();
     image.decoding='async';
     image.src=imagePathForCount(count);
+    preloadedImages.push(image);
   }
 }
 
@@ -200,6 +216,8 @@ async function openAttendance(){
   render();
   preloadClassroomImages();
 }
+
+preloadInitialClassroomImage();
 
 window.addEventListener('k3paalbos:navigate',event=>{
   const page=event.detail?.page;
