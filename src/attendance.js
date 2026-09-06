@@ -75,6 +75,7 @@ function queueAttendanceSave(){
 }
 
 async function clearAttendance(){
+  await saveQueue;
   const {error}=await supabase
     .from('attendance_day_state')
     .delete()
