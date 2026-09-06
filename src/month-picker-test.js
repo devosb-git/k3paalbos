@@ -9,7 +9,7 @@ const groups=[
   {name:'Samen',items:[['🤲','Hartje'],['❤️','Zorg'],['👥','Kleine groep'],['asset:kring','Kring'],['💬','Babbelronde'],['🗣️','Gespreksmoment']]},
   {name:'Dagritme',items:[['asset:wc','WC'],['asset:middag','Middag'],['🥣','Soep'],['asset:fruit','Fruit']]},
   {name:'Leren',items:[['asset:wiskunde','Wiskunde'],['🗣️','Taal'],['🔠','Letters'],['✏️','Schrijven'],['🔬','STEM'],['🚦','Verkeer'],['🇫🇷','Frans']]},
-  {name:'Creatief',items:[['📚','Lezen'],['🎨','Knutselen'],['🎵','Muziek'],['🎲','Opvoedende spelen'],['🧩','Puzzelen'],['🎭','Toneel'],['🎬','Film'],['📖','Voorlezen'],['🗄️','Kiesbak'],['asset:bib','Bib']]},
+  {name:'Creatief',items:[['📚','Lezen'],['🎨','Knutselen'],['🎵','Muziek'],['🎲','Opvoedende spelen'],['🧩','Puzzelen'],['🎭','Toneel'],['🎬','Film'],['📖','Voorlezen'],['🗄️','Kiesbak'],['asset:bib','Bib'],['🧱','Hoekenwerk']]},
   {name:'Op stap',items:[['🚌','Bus'],['🚶','Op stap'],['⭐','Speciale act.']]},
   {name:'Feest',items:[['🌷','Moederdag'],['💙','Vaderdag'],['🎉','Feest'],['🎄','Kerst'],['🐣','Pasen'],['asset:sinterklaas-mijter','Sinterklaas'],['asset:verjaardag','Verjaardag']]}
 ];
