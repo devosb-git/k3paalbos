@@ -86,9 +86,39 @@ async function rollTasks(){
  if(currentAssignments.length||currentSunshine){await supabase.from('class_task_assignments').delete().eq('week_start',week);await supabase.from('class_week_sunshine').delete().eq('week_start',week);}
  const {data:history,error}=await supabase.from('class_task_assignments').select('task_key,student_id,task_cycle,week_start');if(error)return showStatus(error.message,true);
  const activeIds=new Set(students.map(s=>s.id));const newRows=[];const weekLoad=new Map(students.map(s=>[s.id,0]));
- for(const task of tasks){const taskHistory=(history||[]).filter(h=>h.task_key===task.key);let cycle=Math.max(1,...taskHistory.map(h=>h.task_cycle||1));let used=new Set(taskHistory.filter(h=>(h.task_cycle||1)===cycle&&activeIds.has(h.student_id)).map(h=>h.student_id));if(used.size>=students.length){cycle++;used=new Set()}const picks=[];while(picks.length<task.slots){let candidates=students.filter(s=>!picks.includes(s.id)&&!used.has(s.id));if(!candidates.length){cycle++;used=new Set();candidates=students.filter(s=>!picks.includes(s.id))}candidates=shuffle(candidates).sort((a,b)=>(weekLoad.get(a.id)||0)-(weekLoad.get(b.id)||0));const chosen=candidates[0];if(!chosen)break;picks.push(chosen.id);used.add(chosen.id);weekLoad.set(chosen.id,(weekLoad.get(chosen.id)||0)+1);newRows.push({week_start:week,task_key:task.key,slot:picks.length,student_id:chosen.id,task_cycle:cycle,created_by:profile.id});}}
- const {data:sunHistory}=await supabase.from('class_week_sunshine').select('student_id,sunshine_cycle');let sunCycle=Math.max(1,...(sunHistory||[]).map(x=>x.sunshine_cycle||1));let sunUsed=new Set((sunHistory||[]).filter(x=>(x.sunshine_cycle||1)===sunCycle&&activeIds.has(x.student_id)).map(x=>x.student_id));if(sunUsed.size>=students.length){sunCycle++;sunUsed=new Set()}const sunshine=shuffle(students.filter(s=>!sunUsed.has(s.id)))[0]||shuffle(students)[0];
- const {error:insertError}=await supabase.from('class_task_assignments').insert(newRows);if(insertError)return showStatus(insertError.message,true);const {error:sunError}=await supabase.from('class_week_sunshine').insert({week_start:week,student_id:sunshine.id,sunshine_cycle:sunCycle,created_by:profile.id});if(sunError){await supabase.from('class_task_assignments').delete().eq('week_start',week);return showStatus(sunError.message,true);}await loadData();showStatus('🎉 Nieuwe klastaken zijn verdeeld!');
+ for(const task of tasks){
+  const taskHistory=(history||[]).filter(h=>h.task_key===task.key);
+  let cycle=Math.max(1,...taskHistory.map(h=>h.task_cycle||1));
+  let used=new Set(taskHistory.filter(h=>(h.task_cycle||1)===cycle&&activeIds.has(h.student_id)).map(h=>h.student_id));
+  if(used.size>=students.length){cycle++;used=new Set()}
+  const picks=[];
+  while(picks.length<task.slots){
+   let candidates=students.filter(s=>!picks.includes(s.id)&&!used.has(s.id));
+   const unassigned=students.filter(s=>!picks.includes(s.id)&&(weekLoad.get(s.id)||0)===0);
+   if(unassigned.length&&!candidates.some(s=>(weekLoad.get(s.id)||0)===0)){
+    cycle++;
+    used=new Set();
+    candidates=students.filter(s=>!picks.includes(s.id));
+   }
+   if(!candidates.length){cycle++;used=new Set();candidates=students.filter(s=>!picks.includes(s.id))}
+   candidates=shuffle(candidates).sort((a,b)=>(weekLoad.get(a.id)||0)-(weekLoad.get(b.id)||0));
+   const chosen=candidates[0];if(!chosen)break;
+   picks.push(chosen.id);used.add(chosen.id);weekLoad.set(chosen.id,(weekLoad.get(chosen.id)||0)+1);
+   newRows.push({week_start:week,task_key:task.key,slot:picks.length,student_id:chosen.id,task_cycle:cycle,created_by:profile.id});
+  }
+ }
+ const {data:sunHistory}=await supabase.from('class_week_sunshine').select('student_id,sunshine_cycle');
+ let sunCycle=Math.max(1,...(sunHistory||[]).map(x=>x.sunshine_cycle||1));
+ let sunUsed=new Set((sunHistory||[]).filter(x=>(x.sunshine_cycle||1)===sunCycle&&activeIds.has(x.student_id)).map(x=>x.student_id));
+ if(sunUsed.size>=students.length){sunCycle++;sunUsed=new Set()}
+ const withoutTask=students.filter(s=>(weekLoad.get(s.id)||0)===0);
+ const sunshinePool=withoutTask.length?withoutTask:students;
+ let sunshineCandidates=sunshinePool.filter(s=>!sunUsed.has(s.id));
+ if(!sunshineCandidates.length){sunCycle++;sunUsed=new Set();sunshineCandidates=sunshinePool}
+ const sunshine=shuffle(sunshineCandidates)[0]||shuffle(students)[0];
+ const {error:insertError}=await supabase.from('class_task_assignments').insert(newRows);if(insertError)return showStatus(insertError.message,true);
+ const {error:sunError}=await supabase.from('class_week_sunshine').insert({week_start:week,student_id:sunshine.id,sunshine_cycle:sunCycle,created_by:profile.id});if(sunError){await supabase.from('class_task_assignments').delete().eq('week_start',week);return showStatus(sunError.message,true);}
+ await loadData();showStatus('🎉 Nieuwe klastaken zijn verdeeld!');
 }
 
 async function setResetPassword(){const value=document.querySelector('#reset-new-password').value;if(value.length<4)return showStatus('Het beheerwachtwoord moet minstens 4 tekens lang zijn.',true);const {error}=await supabase.rpc('class_tasks_set_reset_password',{p_new_password:value});if(error)return showStatus(error.message,true);await loadData();showStatus('Beheerwachtwoord ingesteld.');}
