@@ -10,6 +10,7 @@ let students=[];
 let presentIds=new Set();
 let statusMessage='';
 let saveQueue=Promise.resolve();
+let imagesPreloaded=false;
 
 function attendanceDate(){
   const now=new Date();
@@ -17,6 +18,24 @@ function attendanceDate(){
   const m=String(now.getMonth()+1).padStart(2,'0');
   const d=String(now.getDate()).padStart(2,'0');
   return `${y}-${m}-${d}`;
+}
+
+function imagePathForCount(count){
+  return `/src/classroom/${String(Math.min(Math.max(count,0),25)).padStart(2,'0')}_kinderen.png`;
+}
+
+function imagePath(){
+  return imagePathForCount(presentIds.size);
+}
+
+function preloadClassroomImages(){
+  if(imagesPreloaded)return;
+  imagesPreloaded=true;
+  for(let count=0;count<=25;count++){
+    const image=new Image();
+    image.decoding='async';
+    image.src=imagePathForCount(count);
+  }
 }
 
 async function getProfile(){
@@ -68,7 +87,7 @@ function queueAttendanceSave(){
 
     if(error){
       statusMessage=`Aanwezigheden opslaan mislukt: ${error.message}`;
-      render();
+      updateStatus();
     }
   });
   return saveQueue;
@@ -83,23 +102,58 @@ async function clearAttendance(){
 
   if(error){
     statusMessage=`Aanwezigheden wissen mislukt: ${error.message}`;
-    render();
+    updateStatus();
     return;
   }
 
   presentIds=new Set();
   statusMessage='';
-  render();
-}
-
-function imagePath(){
-  const count=Math.min(presentIds.size,25);
-  return `/src/classroom/${String(count).padStart(2,'0')}_kinderen.png`;
+  updateAttendanceView();
 }
 
 function header(){
   const name=profile?.display_name||'Welkom';
   return `<header class="topbar"><div class="brand"><div class="fox">🦊</div><div><h1>De Vosjes</h1><p>Wie is er vandaag?</p></div></div><nav class="main-nav"><button class="nav-item"><span>📅</span><small>Maandkalender</small></button><button class="nav-item"><span>🗓️</span><small>Weekkalender</small></button><button class="nav-item"><span>➡️</span><small>Dagverloop</small></button><button class="nav-item"><span>🌤️</span><small>Weer</small></button><button class="nav-item"><span>👕</span><small>Kleding</small></button><button class="nav-item"><span>🎲</span><small>Klastaken</small></button><button class="nav-item active"><span>🙋</span><small>Aanwezigheden</small></button></nav><div class="account">${name} <button id="attendance-logout">Uitloggen</button></div></header>`;
+}
+
+function updateStatus(){
+  const board=document.querySelector('.attendance-board');
+  if(!board)return;
+  let status=document.querySelector('.attendance-status');
+  if(statusMessage){
+    if(!status){
+      status=document.createElement('p');
+      status.className='attendance-status';
+      board.appendChild(status);
+    }
+    status.textContent=statusMessage;
+  }else{
+    status?.remove();
+  }
+}
+
+function updateAttendanceView(){
+  if(!pageActive)return;
+  const count=presentIds.size;
+  const image=document.querySelector('.attendance-image');
+  if(image){
+    image.src=imagePath();
+    image.alt=`Klas met ${count} aanwezige kinderen`;
+  }
+
+  const counter=document.querySelector('.attendance-counter');
+  if(counter){
+    counter.setAttribute('aria-label',`${count} van ${students.length||25} kinderen aanwezig`);
+    counter.innerHTML=`<strong>${count}</strong><span>/${students.length||25}</span>`;
+  }
+
+  document.querySelectorAll('.attendance-student').forEach(button=>{
+    const present=presentIds.has(button.dataset.studentId);
+    button.classList.toggle('present',present);
+    button.setAttribute('aria-pressed',String(present));
+  });
+
+  updateStatus();
 }
 
 function render(){
@@ -123,7 +177,7 @@ function toggleStudent(id){
   if(presentIds.has(id))presentIds.delete(id);
   else if(presentIds.size<25)presentIds.add(id);
   statusMessage='';
-  render();
+  updateAttendanceView();
   queueAttendanceSave();
 }
 
@@ -135,6 +189,7 @@ async function openAttendance(){
   await loadStudents();
   await loadAttendance();
   render();
+  preloadClassroomImages();
 }
 
 window.addEventListener('k3paalbos:navigate',event=>{
