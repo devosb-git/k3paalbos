@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import './class-dolls.css';
+import './class-tasks-dialog.css';
 import vosImage from './class-dolls/vos.png';
 import pompomImage from './class-dolls/pompom.png';
 
@@ -123,10 +124,37 @@ async function rollDolls(){
   statusMessage='🎉 De klaspoppen hebben hun logeeradres voor deze week gekozen!';
   render();
 }
+function confirmHistoryReset(){
+  return new Promise(resolve=>{
+    const previousFocus=document.activeElement;
+    const overlay=document.createElement('div');
+    overlay.className='tasks-dialog-overlay';
+    overlay.innerHTML=`<section class="tasks-dialog" role="dialog" aria-modal="true" aria-labelledby="dolls-reset-title" aria-describedby="dolls-reset-description"><div class="tasks-dialog-icon" aria-hidden="true">🗑️</div><h2 id="dolls-reset-title">Historiek verwijderen?</h2><p id="dolls-reset-description">Ben je zeker dat je de volledige historiek van de klaspoppen wilt wissen? Ook de verdeling van deze week wordt verwijderd. De leerlingenlijst blijft behouden.</p><div class="tasks-dialog-actions"><button type="button" class="tasks-dialog-cancel">Historiek behouden</button><button type="button" class="tasks-dialog-confirm"><span aria-hidden="true">🗑️</span> Historiek verwijderen</button></div></section>`;
+    document.body.appendChild(overlay);
+    document.body.classList.add('tasks-dialog-open');
+    const cancel=overlay.querySelector('.tasks-dialog-cancel');
+    const confirm=overlay.querySelector('.tasks-dialog-confirm');
+    const buttons=[cancel,confirm];
+    const close=result=>{document.removeEventListener('keydown',onKeydown);overlay.remove();document.body.classList.remove('tasks-dialog-open');previousFocus?.focus?.();resolve(result)};
+    const onKeydown=event=>{
+      if(event.key==='Escape'){event.preventDefault();close(false);return;}
+      if(event.key==='Tab'){
+        const currentIndex=buttons.indexOf(document.activeElement);
+        if(event.shiftKey&&currentIndex<=0){event.preventDefault();confirm.focus();}
+        else if(!event.shiftKey&&currentIndex===buttons.length-1){event.preventDefault();cancel.focus();}
+      }
+    };
+    cancel.onclick=()=>close(false);
+    confirm.onclick=()=>close(true);
+    overlay.onclick=event=>{if(event.target===overlay)close(false)};
+    document.addEventListener('keydown',onKeydown);
+    cancel.focus();
+  });
+}
 async function resetHistory(){
   const password=document.querySelector('#dolls-history-password')?.value||'';
   if(!password){statusMessage='Vul het beheerwachtwoord in om de historiek te wissen.';statusError=true;render();return;}
-  const confirmed=window.confirm('Wil je de volledige klaspoppenhistoriek wissen? Ook de verdeling van deze week wordt verwijderd.');
+  const confirmed=await confirmHistoryReset();
   if(!confirmed)return;
   const {error}=await supabase.rpc('class_puppets_reset',{p_password:password});
   if(error){statusMessage=error.message;statusError=true;render();return;}
