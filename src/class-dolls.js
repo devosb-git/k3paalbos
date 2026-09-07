@@ -72,13 +72,17 @@ function render(){
   if(!pageActive)return;
   const canEdit=profile?.role==='teacher';
   const vos=currentFor(1),pompom=currentFor(2);
-  app().innerHTML=`<main class="page dolls-page">${header()}<section class="dolls-shell"><div class="dolls-heading"><span class="dolls-kicker">🧸 Elke week een nieuw avontuur</span><h2>Wie mag onze klaspoppen meenemen?</h2><p>De dobbelsteen kiest voor elke pop een ander kindje. De historiek zorgt ervoor dat iedereen per pop aan de beurt komt.</p></div><div class="dolls-stage"><article class="doll-card doll-card-fox"><div class="doll-image-wrap"><img src="${vosImage}" alt="Klaspop Vos"></div><div class="doll-label">Vos</div><div class="doll-student ${vos?'chosen':''}">${vos?studentName(vos.student_id):'Nog te kiezen'}</div></article><div class="dolls-dice-column"><div class="dice-hint">Wie mag deze week mee?</div><button class="dolls-dice ${rolling?'rolling':''}" id="roll-dolls" ${!canEdit||students.length<2||rolling?'disabled':''} aria-label="Dobbel voor de klaspoppen"><span class="dice-face">⚄</span></button><div class="dice-caption">${canEdit?'Tik op de dobbelsteen':'Alleen de juf kan dobbelen'}</div></div><article class="doll-card doll-card-pompom"><div class="doll-image-wrap"><img src="${pompomImage}" alt="Klaspop Pompom"></div><div class="doll-label">Pompom</div><div class="doll-student ${pompom?'chosen':''}">${pompom?studentName(pompom.student_id):'Nog te kiezen'}</div></article></div>${students.length<2?'<div class="dolls-warning">Voeg minstens twee actieve kleuters toe bij Klastaken.</div>':''}${statusMessage?`<div class="dolls-status ${statusError?'error':''}">${statusMessage}</div>`:''}<details class="dolls-history"><summary>📚 Historiek bekijken</summary><div class="dolls-history-list">${historyRows()}</div></details></section></main>`;
+  const historyAdmin=canEdit?`<div class="dolls-history-admin"><div><strong>Historiek wissen</strong><p>Alle klaspopverdelingen worden verwijderd. De leerlingenlijst blijft behouden.</p></div><div class="dolls-history-reset-row"><input id="dolls-history-password" type="password" placeholder="Beheerwachtwoord" autocomplete="current-password"><button id="reset-dolls-history" class="dolls-danger-button">Historiek resetten</button></div></div>`:'';
+  app().innerHTML=`<main class="page dolls-page">${header()}<section class="dolls-shell"><div class="dolls-heading"><span class="dolls-kicker">🧸 Elke week een nieuw avontuur</span><h2>Wie mag onze klaspoppen meenemen?</h2></div><div class="dolls-stage"><article class="doll-card doll-card-fox"><div class="doll-image-wrap"><img src="${vosImage}" alt="Klaspop Vos"></div><div class="doll-student ${vos?'chosen':''}">${vos?studentName(vos.student_id):'Nog te kiezen'}</div></article><div class="dolls-dice-column"><div class="dice-hint">Wie mag deze week mee?</div><button class="dolls-dice ${rolling?'rolling':''}" id="roll-dolls" ${!canEdit||students.length<2||rolling?'disabled':''} aria-label="Dobbel voor de klaspoppen"><span class="dolls-dice-image" role="img" aria-label="Dobbelsteen">🎲</span></button><div class="dice-caption">${canEdit?'Tik op de dobbelsteen':'Alleen de juf kan dobbelen'}</div></div><article class="doll-card doll-card-pompom"><div class="doll-image-wrap"><img src="${pompomImage}" alt="Klaspop Pompom"></div><div class="doll-student ${pompom?'chosen':''}">${pompom?studentName(pompom.student_id):'Nog te kiezen'}</div></article></div>${students.length<2?'<div class="dolls-warning">Voeg minstens twee actieve kleuters toe bij Klastaken.</div>':''}${statusMessage?`<div class="dolls-status ${statusError?'error':''}">${statusMessage}</div>`:''}<details class="dolls-history"><summary>📚 Historiek bekijken</summary><div class="dolls-history-list">${historyRows()}</div>${historyAdmin}</details></section></main>`;
   bind(canEdit);
 }
 function bind(canEdit){
   document.querySelector('#dolls-logout').onclick=()=>supabase.auth.signOut();
   document.querySelectorAll('[data-dolls-go]').forEach(button=>button.onclick=()=>go(button.dataset.dollsGo));
-  if(canEdit)document.querySelector('#roll-dolls')?.addEventListener('click',rollDolls);
+  if(canEdit){
+    document.querySelector('#roll-dolls')?.addEventListener('click',rollDolls);
+    document.querySelector('#reset-dolls-history')?.addEventListener('click',resetHistory);
+  }
 }
 function slotChoice(slot,historyWithoutCurrent,excludeId=null){
   const slotHistory=historyWithoutCurrent.filter(row=>row.puppet_slot===slot);
@@ -117,6 +121,18 @@ async function rollDolls(){
   await loadData();
   rolling=false;
   statusMessage='🎉 De klaspoppen hebben hun logeeradres voor deze week gekozen!';
+  render();
+}
+async function resetHistory(){
+  const password=document.querySelector('#dolls-history-password')?.value||'';
+  if(!password){statusMessage='Vul het beheerwachtwoord in om de historiek te wissen.';statusError=true;render();return;}
+  const confirmed=window.confirm('Wil je de volledige klaspoppenhistoriek wissen? Ook de verdeling van deze week wordt verwijderd.');
+  if(!confirmed)return;
+  const {error}=await supabase.rpc('class_puppets_reset',{p_password:password});
+  if(error){statusMessage=error.message;statusError=true;render();return;}
+  await loadData();
+  statusMessage='✅ De klaspoppenhistoriek is gewist.';
+  statusError=false;
   render();
 }
 
