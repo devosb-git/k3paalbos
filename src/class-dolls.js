@@ -74,7 +74,7 @@ function render(){
   const canEdit=profile?.role==='teacher';
   const vos=currentFor(1),pompom=currentFor(2);
   const historyAdmin=canEdit?`<div class="dolls-history-admin"><div><strong>Historiek wissen</strong><p>Alle klaspopverdelingen worden verwijderd. De leerlingenlijst blijft behouden.</p></div><div class="dolls-history-reset-row"><input id="dolls-history-password" type="password" placeholder="Beheerwachtwoord" autocomplete="current-password"><button id="reset-dolls-history" class="dolls-danger-button">Historiek resetten</button></div></div>`:'';
-  app().innerHTML=`<main class="page dolls-page">${header()}<section class="dolls-shell"><div class="dolls-heading"><span class="dolls-kicker">🧸 Elke week een nieuw avontuur</span><h2>Wie mag onze klaspoppen meenemen?</h2></div><div class="dolls-stage"><article class="doll-card doll-card-fox"><div class="doll-image-wrap"><img src="${vosImage}" alt="Klaspop Vos"></div><div class="doll-student ${vos?'chosen':''}">${vos?studentName(vos.student_id):'Nog te kiezen'}</div></article><div class="dolls-dice-column"><div class="dice-hint">Wie mag deze week mee?</div><button class="dolls-dice ${rolling?'rolling':''}" id="roll-dolls" ${!canEdit||students.length<2||rolling?'disabled':''} aria-label="Dobbel voor de klaspoppen"><span class="dolls-dice-image" role="img" aria-label="Dobbelsteen">🎲</span></button><div class="dice-caption">${canEdit?'Tik op de dobbelsteen':'Alleen de juf kan dobbelen'}</div></div><article class="doll-card doll-card-pompom"><div class="doll-image-wrap"><img src="${pompomImage}" alt="Klaspop Pompom"></div><div class="doll-student ${pompom?'chosen':''}">${pompom?studentName(pompom.student_id):'Nog te kiezen'}</div></article></div>${students.length<2?'<div class="dolls-warning">Voeg minstens twee actieve kleuters toe bij Klastaken.</div>':''}${statusMessage?`<div class="dolls-status ${statusError?'error':''}">${statusMessage}</div>`:''}<details class="dolls-history"><summary>📚 Historiek bekijken</summary><div class="dolls-history-list">${historyRows()}</div>${historyAdmin}</details></section></main>`;
+  app().innerHTML=`<main class="page dolls-page">${header()}<section class="dolls-shell"><div class="dolls-heading"><h2>Wie mag onze klaspoppen meenemen?</h2></div><div class="dolls-stage"><article class="doll-card doll-card-fox"><div class="doll-image-wrap"><img src="${vosImage}" alt="Klaspop Vos"></div><div class="doll-student ${vos?'chosen':''}">${vos?studentName(vos.student_id):'Nog te kiezen'}</div></article><div class="dolls-dice-column"><div class="dice-hint">Wie mag deze week mee?</div><button class="dolls-dice" id="roll-dolls" ${!canEdit||students.length<2||rolling?'disabled':''} aria-label="Dobbel voor de klaspoppen"><span class="dolls-dice-image" role="img" aria-label="Dobbelsteen">🎲</span></button></div><article class="doll-card doll-card-pompom"><div class="doll-image-wrap"><img src="${pompomImage}" alt="Klaspop Pompom"></div><div class="doll-student ${pompom?'chosen':''}">${pompom?studentName(pompom.student_id):'Nog te kiezen'}</div></article></div>${students.length<2?'<div class="dolls-warning">Voeg minstens twee actieve kleuters toe bij Klastaken.</div>':''}${statusMessage?`<div class="dolls-status ${statusError?'error':''}">${statusMessage}</div>`:''}<details class="dolls-history"><summary>📚 Historiek bekijken</summary><div class="dolls-history-list">${historyRows()}</div>${historyAdmin}</details></section></main>`;
   bind(canEdit);
 }
 function bind(canEdit){
@@ -97,6 +97,17 @@ function slotChoice(slot,historyWithoutCurrent,excludeId=null){
   }
   return {student:shuffle(available)[0]||null,cycle};
 }
+function showDiceAnimation(){
+  document.querySelector('.tasks-dice-overlay')?.remove();
+  const overlay=document.createElement('div');
+  overlay.className='tasks-dice-overlay';
+  overlay.setAttribute('role','status');
+  overlay.setAttribute('aria-live','polite');
+  overlay.innerHTML='<div class="tasks-dice-stage"><div class="tasks-dice-title">Dobbelen…</div><div class="tasks-dice-stars">✨ ⭐ ✨</div><div class="tasks-dice-big">🎲</div><div class="tasks-dice-subtitle">Wie mogen de klaspoppen meenemen?</div></div>';
+  document.body.appendChild(overlay);
+  void overlay.offsetHeight;
+  return overlay;
+}
 async function rollDolls(){
   if(rolling||students.length<2)return;
   const week=mondayKey();
@@ -105,6 +116,9 @@ async function rollDolls(){
     if(!again)return;
   }
   rolling=true;statusMessage='';statusError=false;render();
+  const overlay=showDiceAnimation();
+  await new Promise(resolve=>setTimeout(resolve,2600));
+  overlay.remove();
   const historyWithoutCurrent=history.filter(row=>row.week_start!==week);
   const first=slotChoice(1,historyWithoutCurrent);
   const second=slotChoice(2,historyWithoutCurrent,first.student?.id||null);
