@@ -14,11 +14,6 @@ let rolling=false;
 let statusMessage='';
 let statusError=false;
 
-const dolls=[
-  {slot:1,key:'vos',name:'Vos',image:vosImage,accent:'fox'},
-  {slot:2,key:'pompom',name:'Pompom',image:pompomImage,accent:'pompom'}
-];
-
 function mondayKey(){
   const d=new Date();
   const day=d.getDay()||7;
@@ -55,7 +50,8 @@ async function loadData(){
 }
 function go(page){
   pageActive=false;
-  window.dispatchEvent(new CustomEvent('k3paalbos:navigate',{detail:{page}}));
+  const eventName=page==='tasks'?'k3paalbos:tasks':'k3paalbos:navigate';
+  window.dispatchEvent(new CustomEvent(eventName,{detail:{page}}));
 }
 function header(){
   const name=profile?.display_name||'Welkom';
@@ -88,11 +84,10 @@ function slotChoice(slot,historyWithoutCurrent,excludeId=null){
   const slotHistory=historyWithoutCurrent.filter(row=>row.puppet_slot===slot);
   const maxCycle=Math.max(1,...slotHistory.map(row=>row.puppet_cycle||1));
   let cycle=maxCycle;
-  let used=new Set(slotHistory.filter(row=>(row.puppet_cycle||1)===cycle).map(row=>row.student_id));
+  const used=new Set(slotHistory.filter(row=>(row.puppet_cycle||1)===cycle).map(row=>row.student_id));
   let available=students.filter(student=>!used.has(student.id)&&student.id!==excludeId);
   if(!available.length){
     cycle=maxCycle+1;
-    used=new Set();
     available=students.filter(student=>student.id!==excludeId);
   }
   return {student:shuffle(available)[0]||null,cycle};
