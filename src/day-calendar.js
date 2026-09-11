@@ -42,7 +42,9 @@ const styles = () => {
 .day-current-activity-icon{width:205px;height:205px;display:grid;place-items:center;font-size:170px;line-height:1}
 .day-current-activity-icon .activity-icon-image{display:block;width:100%;height:100%;max-width:none;object-fit:contain}
 .day-current-activity.is-changing .day-current-activity-icon{animation:dayCurrentFade .45s ease both}
+.day-current-activity.is-leaving .day-current-activity-icon{animation:dayCurrentFadeOut .35s ease forwards}
 @keyframes dayCurrentFade{0%{opacity:0;transform:scale(.96)}100%{opacity:1;transform:scale(1)}}
+@keyframes dayCurrentFadeOut{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.96)}}
 .day-calendar-scroll{overflow-x:auto;padding-bottom:2px}
 .day-row{display:grid;grid-template-columns:repeat(14,minmax(72px,1fr));min-width:980px;border:2px solid #dfe9dd;border-radius:18px;overflow:hidden;background:#fbfdf9}
 .day-slot{position:relative;min-height:165px;border-right:1px solid #dfe9dd;padding:30px 6px 8px;display:flex;align-items:center;justify-content:center}
@@ -89,7 +91,7 @@ const styles = () => {
 @keyframes dayActivityCard{0%{transform:scale(.9)}12%{transform:scale(1)}84%{transform:scale(1)}100%{transform:scale(.96)}}
 @media(max-width:1000px){.day-groups{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.day-calendar-board,.day-sidebar{padding:12px}.day-calendar-title{align-items:flex-start;flex-direction:column}.day-current-wrap{height:190px;margin-bottom:10px}.day-current-activity{width:190px;height:190px}.day-current-activity-icon{width:170px;height:170px;font-size:140px}.day-groups{grid-template-columns:1fr}.day-row,.day-slider-wrap,.day-periods{min-width:980px}.day-activity-spotlight-card{width:min(360px,82vw);min-height:min(360px,82vw);padding:24px}.day-activity-spotlight-icon{width:220px;height:220px;font-size:145px}}
-@media(prefers-reduced-motion:reduce){.day-current-activity.is-changing .day-current-activity-icon,.day-activity-spotlight,.day-activity-spotlight-card{animation:none}.day-activity-spotlight{opacity:1}}
+@media(prefers-reduced-motion:reduce){.day-current-activity.is-changing .day-current-activity-icon,.day-current-activity.is-leaving .day-current-activity-icon,.day-activity-spotlight,.day-activity-spotlight-card{animation:none}.day-activity-spotlight{opacity:1}}
 `;
 };
 
@@ -204,9 +206,16 @@ function updateCurrentActivityAfterSpotlight(previousSlot, nextSlot, navigate, p
 
   if (nextSlot === previousSlot) return;
 
+  const currentActivityElement = document.querySelector('.day-current-activity');
+  currentActivityElement?.classList.remove('is-changing');
+  currentActivityElement?.classList.add('is-leaving');
+
   const nextActivity = calendar.activities.find(a => a.slot === nextSlot);
   if (!nextActivity) {
-    render(navigate, profile, true);
+    currentActivityUpdateTimer = window.setTimeout(() => {
+      render(navigate, profile);
+      currentActivityUpdateTimer = null;
+    }, 350);
     return;
   }
 
