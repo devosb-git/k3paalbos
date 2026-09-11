@@ -15,3 +15,47 @@
 .day-slider-point:last-child {
   margin-right: -6px;
 }
+
+/* Dagverloop: geef het pictogram zoveel mogelijk ruimte.
+   Het label staat visueel onder de button in plaats van erin. */
+.day-row .day-slot {
+  padding-left: 3px !important;
+  padding-right: 3px !important;
+  padding-bottom: 24px !important;
+}
+
+.day-row .day-activity {
+  position: relative !important;
+  min-height: 104px !important;
+  padding: 2px !important;
+  gap: 0 !important;
+  overflow: visible !important;
+}
+
+.day-row .day-activity > span {
+  font-size: 70px !important;
+  line-height: 1 !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.day-row .day-activity > span .activity-icon-image {
+  width: 1em !important;
+  height: 1em !important;
+  max-width: 100% !important;
+}
+
+.day-row .day-activity > small {
+  position: absolute !important;
+  top: calc(100% + 4px) !important;
+  left: -3px !important;
+  right: -3px !important;
+  margin: 0 !important;
+  font-size: 11px !important;
+  line-height: 1.05 !important;
+  font-weight: 700 !important;
+  color: #496153 !important;
+  text-align: center !important;
+  white-space: normal !important;
+  pointer-events: none !important;
+}
