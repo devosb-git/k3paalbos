@@ -26,16 +26,17 @@
 }
 
 .day-row .day-activity > span {
-  font-size: 56px !important;
+  font-size: 70px !important;
   width: 100%;
   display: grid;
   place-items: center;
 }
 
 .day-row .day-activity .activity-icon-image {
-  width: 1.25em;
-  height: 1.25em;
-  max-width: 100%;
+  width: 1em;
+  height: 1em;
+  max-width: 70px;
+  max-height: 70px;
 }
 
 /* Tekst blijft even groot, maar krijgt een eigen compacte regel onderaan. */
