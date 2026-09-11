@@ -1,12 +1,12 @@
 const pages=[
+  {id:'attendance',icon:'🙋',label:'Aanwezigheden'},
   {id:'calendar',icon:'📅',label:'Maandkalender'},
   {id:'week',icon:'🗓️',label:'Weekkalender'},
   {id:'day',icon:'➡️',label:'Dagverloop'},
   {id:'weather',icon:'🌤️',label:'Weer'},
   {id:'clothing',icon:'👕',label:'Kleding'},
   {id:'tasks',icon:'🎲',label:'Klastaken'},
-  {id:'dolls',icon:'🧸',label:'Klaspoppen'},
-  {id:'attendance',icon:'🙋',label:'Aanwezigheden'}
+  {id:'dolls',icon:'🧸',label:'Klaspoppen'}
 ];
 const labelToId={'Kalender':'calendar','Maandkalender':'calendar','Weekkalender':'week','Dagkalender':'day','Dagverloop':'day','Weer':'weather','Kleding':'clothing','Klastaken':'tasks','Klaspoppen':'dolls','Aanwezigheden':'attendance'};
 function pageFromButton(button){const small=button.querySelector('small')?.textContent?.trim()||'';return button.dataset.page||button.dataset.taskGo||button.dataset.dollsGo||labelToId[small]||null}
