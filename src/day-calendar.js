@@ -37,7 +37,7 @@ const styles = () => {
 .day-calendar-title p,.day-sidebar>p{color:#718176}
 .day-calendar-title button{border:0;border-radius:12px;padding:10px 14px;background:#f1f6ef;color:#496153;font-weight:700;cursor:pointer}
 .day-calendar-scroll{overflow-x:auto;padding-bottom:2px}
-.day-row{display:grid;grid-template-columns:repeat(12,minmax(72px,1fr));min-width:900px;border:2px solid #dfe9dd;border-radius:18px;overflow:hidden;background:#fbfdf9}
+.day-row{display:grid;grid-template-columns:repeat(14,minmax(72px,1fr));min-width:980px;border:2px solid #dfe9dd;border-radius:18px;overflow:hidden;background:#fbfdf9}
 .day-slot{position:relative;min-height:165px;border-right:1px solid #dfe9dd;padding:30px 6px 8px;display:flex;align-items:center;justify-content:center}
 .day-slot:last-child{border-right:0}
 .day-slot.afternoon-start{border-left:5px solid #8eb39a}
@@ -47,9 +47,9 @@ const styles = () => {
 .day-activity small{font-size:11px;font-weight:700;color:#496153;text-align:center}
 .day-slot.over{background:#eef7ec;box-shadow:inset 0 0 0 3px #7aaa78}
 .day-slot.empty-slot:after{content:'+';font-size:34px;color:#b9c9b7}
-.day-slider-wrap{min-width:900px;padding:18px 0 8px}
+.day-slider-wrap{min-width:980px;padding:18px 0 8px}
 .day-slider-label{text-align:center;color:#55705f;font-size:13px;font-weight:700;margin-bottom:10px}
-.day-slider{position:relative;height:64px;margin:0 calc(100% / 24)}
+.day-slider{position:relative;height:64px;margin:0 calc(100% / 28)}
 .day-slider-track{position:absolute;left:0;right:0;top:31px;height:6px;border-radius:999px;background:#dfe8dd}
 .day-slider-points{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between}
 .day-slider-point{width:12px;height:12px;flex:0 0 12px;border:2px solid #8da08f;background:#fff;border-radius:50%}
@@ -58,7 +58,7 @@ const styles = () => {
 .day-slider-knob{position:absolute;top:0;transform:translateX(-50%);width:58px;height:58px;border:2px solid #8ec0f4;border-radius:16px;background:#fff;color:#2380d8;font-size:38px;font-weight:900;line-height:1;display:grid;place-items:center;cursor:grab;touch-action:none;box-shadow:0 5px 12px #234c2720;z-index:2;user-select:none}
 .day-slider-knob:active{cursor:grabbing;transform:translateX(-50%) scale(1.05)}
 .day-slider-knob:disabled{cursor:default;opacity:.65}
-.day-periods{display:grid;grid-template-columns:repeat(2,1fr);min-width:900px;margin-top:8px;gap:8px}
+.day-periods{display:grid;grid-template-columns:repeat(2,1fr);min-width:980px;margin-top:8px;gap:8px}
 .day-period{padding:9px;text-align:center;border:0;border-radius:12px;font:inherit;font-weight:800;color:#496153;cursor:pointer}
 .day-period.morning{background:#fff5d9}
 .day-period.afternoon{background:#e9f3ff}
@@ -81,7 +81,7 @@ const styles = () => {
 @keyframes dayActivitySpotlight{0%{opacity:0}10%{opacity:1}84%{opacity:1}100%{opacity:0}}
 @keyframes dayActivityCard{0%{transform:scale(.9)}12%{transform:scale(1)}84%{transform:scale(1)}100%{transform:scale(.96)}}
 @media(max-width:1000px){.day-groups{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:650px){.day-calendar-board,.day-sidebar{padding:12px}.day-calendar-title{align-items:flex-start;flex-direction:column}.day-groups{grid-template-columns:1fr}.day-row,.day-slider-wrap,.day-periods{min-width:820px}.day-activity-spotlight-card{width:min(360px,82vw);min-height:min(360px,82vw);padding:24px}.day-activity-spotlight-icon{width:220px;height:220px;font-size:145px}}
+@media(max-width:650px){.day-calendar-board,.day-sidebar{padding:12px}.day-calendar-title{align-items:flex-start;flex-direction:column}.day-groups{grid-template-columns:1fr}.day-row,.day-slider-wrap,.day-periods{min-width:980px}.day-activity-spotlight-card{width:min(360px,82vw);min-height:min(360px,82vw);padding:24px}.day-activity-spotlight-icon{width:220px;height:220px;font-size:145px}}
 @media(prefers-reduced-motion:reduce){.day-activity-spotlight,.day-activity-spotlight-card{animation:none}.day-activity-spotlight{opacity:1}}
 `;
 };
@@ -196,9 +196,9 @@ function render(navigate, profile) {
   styles();
 
   const canEdit = profile.role === 'teacher';
-  const slots = Array.from({ length: 12 }, (_, i) => calendar.activities.find(a => a.slot === i));
+  const slots = Array.from({ length: 14 }, (_, i) => calendar.activities.find(a => a.slot === i));
   const slotHtml = slots.map((a, i) => `
-    <div class="day-slot ${i === 6 ? 'afternoon-start' : ''} ${a ? '' : 'empty-slot'}" data-slot="${i}">
+    <div class="day-slot ${i === 7 ? 'afternoon-start' : ''} ${a ? '' : 'empty-slot'}" data-slot="${i}">
       <div class="slot-number">${i + 1}</div>
       ${a ? `<div class="day-activity" draggable="true" data-index="${i}"><span>${activityIconMarkup(a.icon, a.label)}</span><small>${a.label}</small></div>` : ''}
     </div>
@@ -213,8 +213,8 @@ function render(navigate, profile) {
     </details>
   `).join('');
 
-  const arrowSlot = Math.max(0, Math.min(11, Number(calendar.arrow_slot) || 0));
-  const arrowLeft = `${arrowSlot * 100 / 11}%`;
+  const arrowSlot = Math.max(0, Math.min(13, Number(calendar.arrow_slot) || 0));
+  const arrowLeft = `${arrowSlot * 100 / 13}%`;
 
   document.querySelector('#app').innerHTML = `
     <main class="page">
@@ -242,7 +242,7 @@ function render(navigate, profile) {
               <div class="day-slider-label">Sleep de pijl naar links of rechts. Tik op de pijl om de huidige activiteit opnieuw te tonen.</div>
               <div class="day-slider">
                 <div class="day-slider-track"></div>
-                <div class="day-slider-points">${Array.from({ length: 12 }, () => '<span class="day-slider-point"></span>').join('')}</div>
+                <div class="day-slider-points">${Array.from({ length: 14 }, () => '<span class="day-slider-point"></span>').join('')}</div>
                 <button class="day-slider-knob" style="left:${arrowLeft}" aria-label="Toon huidige activiteit of verplaats de pijl" ${canEdit ? '' : 'disabled'}>↑</button>
               </div>
             </div>
@@ -351,14 +351,14 @@ function bindArrowSlider(navigate, profile) {
   let moved = false;
   let startX = 0;
   let startY = 0;
-  let pendingSlot = Math.max(0, Math.min(11, Number(calendar.arrow_slot) || 0));
+  let pendingSlot = Math.max(0, Math.min(13, Number(calendar.arrow_slot) || 0));
   const dragThreshold = 7;
 
   const position = e => {
     const rect = slider.getBoundingClientRect();
     const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
-    pendingSlot = Math.max(0, Math.min(11, Math.round((x / rect.width) * 11)));
-    knob.style.left = `${pendingSlot * 100 / 11}%`;
+    pendingSlot = Math.max(0, Math.min(13, Math.round((x / rect.width) * 13)));
+    knob.style.left = `${pendingSlot * 100 / 13}%`;
   };
 
   knob.addEventListener('pointerdown', e => {
@@ -366,7 +366,7 @@ function bindArrowSlider(navigate, profile) {
     moved = false;
     startX = e.clientX;
     startY = e.clientY;
-    pendingSlot = Math.max(0, Math.min(11, Number(calendar.arrow_slot) || 0));
+    pendingSlot = Math.max(0, Math.min(13, Number(calendar.arrow_slot) || 0));
     knob.setPointerCapture(e.pointerId);
   });
 
@@ -380,7 +380,7 @@ function bindArrowSlider(navigate, profile) {
     if (!active) return;
     active = false;
 
-    const previousSlot = Math.max(0, Math.min(11, Number(calendar.arrow_slot) || 0));
+    const previousSlot = Math.max(0, Math.min(13, Number(calendar.arrow_slot) || 0));
 
     if (!moved) {
       showActivitySpotlight(previousSlot);
@@ -409,13 +409,13 @@ function bindArrowSlider(navigate, profile) {
     if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
     e.preventDefault();
 
-    const previousSlot = Math.max(0, Math.min(11, Number(calendar.arrow_slot) || 0));
+    const previousSlot = Math.max(0, Math.min(13, Number(calendar.arrow_slot) || 0));
     let slot = previousSlot;
 
     if (e.key === 'ArrowLeft') slot = Math.max(0, slot - 1);
-    if (e.key === 'ArrowRight') slot = Math.min(11, slot + 1);
+    if (e.key === 'ArrowRight') slot = Math.min(13, slot + 1);
     if (e.key === 'Home') slot = 0;
-    if (e.key === 'End') slot = 11;
+    if (e.key === 'End') slot = 13;
 
     try {
       await saveArrow(slot);
