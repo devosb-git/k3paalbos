@@ -57,7 +57,6 @@ const styles = () => {
 .day-slot.over{background:#eef7ec;box-shadow:inset 0 0 0 3px #7aaa78}
 .day-slot.empty-slot:after{content:'+';font-size:34px;color:#b9c9b7}
 .day-slider-wrap{min-width:980px;padding:18px 0 8px}
-.day-slider-label{text-align:center;color:#55705f;font-size:13px;font-weight:700;margin-bottom:10px}
 .day-slider{position:relative;height:64px;margin:0 calc(100% / 28)}
 .day-slider-track{position:absolute;left:0;right:0;top:31px;height:6px;border-radius:999px;background:#dfe8dd}
 .day-slider-points{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between}
@@ -278,7 +277,6 @@ function render(navigate, profile, animateCurrent = false) {
           <div class="day-calendar-scroll">
             <div class="day-row">${slotHtml}</div>
             <div class="day-slider-wrap">
-              <div class="day-slider-label">Sleep de pijl naar links of rechts. Tik op de pijl om de huidige activiteit opnieuw te tonen.</div>
               <div class="day-slider">
                 <div class="day-slider-track"></div>
                 <div class="day-slider-points">${Array.from({ length: 14 }, () => '<span class="day-slider-point"></span>').join('')}</div>
