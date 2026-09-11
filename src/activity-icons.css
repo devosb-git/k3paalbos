@@ -15,42 +15,48 @@
 
 /* Dagverloop: geef het pictogram zoveel mogelijk ruimte binnen de 14 kolommen. */
 .day-row .day-slot {
-  min-height: 195px !important;
-  padding-left: 2px !important;
-  padding-right: 2px !important;
-  padding-bottom: 8px !important;
+  min-height: 225px !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-bottom: 10px !important;
 }
 
 .day-row .day-activity {
-  min-height: 132px !important;
-  padding: 4px 1px !important;
-  gap: 4px !important;
+  min-height: 158px !important;
+  padding: 0 !important;
+  gap: 1px !important;
+  overflow: visible;
 }
 
 .day-row .day-activity > span {
-  font-size: 70px !important;
+  font-size: 76px !important;
   width: 100%;
+  min-height: 90px;
   display: grid;
   place-items: center;
+  overflow: visible;
 }
 
 .day-row .day-activity .activity-icon-image {
-  width: 1em;
-  height: 1em;
-  max-width: 70px;
-  max-height: 70px;
+  width: 76px;
+  height: 76px;
+  max-width: none;
+  max-height: none;
+  transform: scale(1.16);
+  transform-origin: center;
 }
 
-/* Tekst blijft even groot en krijgt opnieuw voldoende verticale ruimte. */
+/* Tekst blijft leesbaar en krijgt meer plaats onder het grotere pictogram. */
 .day-row .day-activity small {
   font-size: 11px !important;
-  line-height: 1.1;
-  min-height: 26px;
+  line-height: 1.15;
+  min-height: 34px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   width: 100%;
-  padding: 0 1px;
+  padding: 4px 1px 0;
+  overflow: visible;
 }
 
 .day-periods .day-period.morning,
