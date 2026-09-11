@@ -46,9 +46,9 @@ function addStyles(){
     .week-picker-head-button{width:100%;height:100%;min-height:52px;border:0;border-radius:8px;background:#fff;color:#31543a;font-weight:800;padding:4px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.05;font-size:18px}
     .week-picker-head-button.number{font-size:20px}
     .week-picker-head-button.empty{background:transparent;color:#7f9385;font-size:12px}
-    .week-picker-relative{margin:7px 7px 0;min-height:48px;border:2px dashed #c7d7c4;border-radius:11px;background:#fff;color:#607768;font-weight:800;font-size:11px;padding:5px;display:flex;align-items:center;justify-content:center;text-align:center;width:calc(100% - 14px)}
+    .week-picker-relative{margin:7px 7px 0;min-height:48px;border:2px dashed #c7d7c4;border-radius:11px;background:#fff;color:#607768;font-weight:800;font-size:14px;padding:5px;display:flex;align-items:center;justify-content:center;text-align:center;width:calc(100% - 14px)}
     .week-picker-relative.filled{border-style:solid;background:#f2f8f0;color:#31593b}
-    .week-picker-relative .arrow{font-size:16px;line-height:1;display:block;margin-bottom:2px}
+    .week-picker-relative .arrow{font-size:18px;line-height:1;display:block;margin-bottom:2px}
     .compact-picker-layout .activity-zone{padding:7px;gap:6px;min-height:405px}
     .week-picker-slot{position:relative;width:100%;min-height:52px;border:2px dashed #cad8c7;border-radius:11px;background:#ffffffa8;color:#849389;padding:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;text-align:center;overflow:hidden}
     .week-picker-slot.filled{border-style:solid;border-color:#dce7d9;background:#fff;color:#355a40;box-shadow:0 2px 5px #254d2610}
