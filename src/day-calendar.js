@@ -19,6 +19,7 @@ const groups = [
 let dragged = null;
 let calendar = null;
 let activitySpotlightTimer = null;
+let currentActivityUpdateTimer = null;
 
 const styles = () => {
   let s = document.getElementById('day-calendar-styles');
@@ -196,6 +197,24 @@ function showActivitySpotlight(slot) {
 
   document.body.appendChild(spotlight);
   activitySpotlightTimer = window.setTimeout(() => spotlight.remove(), 5000);
+}
+
+function updateCurrentActivityAfterSpotlight(previousSlot, nextSlot, navigate, profile) {
+  window.clearTimeout(currentActivityUpdateTimer);
+
+  if (nextSlot === previousSlot) return;
+
+  const nextActivity = calendar.activities.find(a => a.slot === nextSlot);
+  if (!nextActivity) {
+    render(navigate, profile, true);
+    return;
+  }
+
+  showActivitySpotlight(nextSlot);
+  currentActivityUpdateTimer = window.setTimeout(() => {
+    render(navigate, profile, true);
+    currentActivityUpdateTimer = null;
+  }, 5050);
 }
 
 function render(navigate, profile, animateCurrent = false) {
@@ -402,8 +421,7 @@ function bindArrowSlider(navigate, profile) {
 
     try {
       await saveArrow(pendingSlot);
-      render(navigate, profile, pendingSlot !== previousSlot);
-      if (pendingSlot !== previousSlot) showActivitySpotlight(pendingSlot);
+      updateCurrentActivityAfterSpotlight(previousSlot, pendingSlot, navigate, profile);
     } catch (err) {
       console.error(err);
       alert('De pijl kon niet worden opgeslagen.');
@@ -430,8 +448,8 @@ function bindArrowSlider(navigate, profile) {
 
     try {
       await saveArrow(slot);
-      render(navigate, profile, slot !== previousSlot);
-      if (slot !== previousSlot) showActivitySpotlight(slot);
+      knob.style.left = `${slot * 100 / 13}%`;
+      updateCurrentActivityAfterSpotlight(previousSlot, slot, navigate, profile);
     } catch (err) {
       console.error(err);
       alert('De pijl kon niet worden opgeslagen.');
