@@ -13,10 +13,10 @@
   height: 1.3em;
 }
 
-/* Dagverloop: een ruim vak met een grote pictogramknop en aparte ruimte voor het label. */
+/* Dagverloop: grote pictogramknop met een apart, compact label eronder. */
 .day-row .day-slot {
-  min-height: 245px !important;
-  padding: 30px 2px 18px !important;
+  min-height: 225px !important;
+  padding: 30px 2px 10px !important;
   align-items: flex-start !important;
 }
 
@@ -33,31 +33,32 @@
 }
 
 .day-row .day-activity > span {
-  font-size: 88px !important;
+  font-size: 102px !important;
   width: 100%;
   height: 100%;
   display: grid;
   place-items: center;
   line-height: 1;
+  overflow: visible;
 }
 
 .day-row .day-activity .activity-icon-image {
-  width: 96px;
-  height: 96px;
-  max-width: calc(100% - 6px);
-  max-height: 120px;
+  width: min(118px, calc(100% - 2px));
+  height: 118px;
+  max-width: none;
+  max-height: 138px;
   object-fit: contain;
   transform: none;
 }
 
-/* Het label staat buiten de witte knop en krijgt onderaan zijn eigen ruimte. */
+/* Iets meer lucht boven het label, maar minder ongebruikte ruimte eronder. */
 .day-row .day-activity small {
   position: absolute;
-  top: calc(100% + 9px);
+  top: calc(100% + 12px);
   left: -2px;
   right: -2px;
   width: auto;
-  min-height: 34px;
+  min-height: 20px;
   padding: 0 2px;
   font-size: 11px !important;
   line-height: 1.2;
