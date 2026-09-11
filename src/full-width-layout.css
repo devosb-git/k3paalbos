@@ -1,0 +1,43 @@
+/*
+ * Full-width layout override
+ *
+ * Desktop/tablet pages use almost all available horizontal space while
+ * retaining the existing page padding. Individual cards and sidebars keep
+ * their own dimensions, so only the outer layout constraint is removed.
+ */
+
+.topbar,
+.content,
+.week-content,
+footer,
+.weather-page .topbar,
+.weather-page .weather-card {
+  width: 100%;
+  max-width: none;
+}
+
+/* Keep a little extra breathing room on very wide screens without giving up
+   meaningful horizontal workspace. */
+@media (min-width: 1200px) {
+  .page,
+  .weather-page {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+@media (max-width: 900px) {
+  .page,
+  .weather-page {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+@media (max-width: 560px) {
+  .page,
+  .weather-page {
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+}
