@@ -136,6 +136,36 @@ async function clearAttendance(){
   updateAttendanceView();
 }
 
+function showClearConfirmation(){
+  document.querySelector('.attendance-confirm-overlay')?.remove();
+
+  const overlay=document.createElement('div');
+  overlay.className='attendance-confirm-overlay';
+  overlay.innerHTML=`
+    <div class="attendance-confirm-card" role="dialog" aria-modal="true" aria-labelledby="attendance-confirm-title">
+      <div class="attendance-confirm-icon">🦊</div>
+      <h3 id="attendance-confirm-title">Alles wissen?</h3>
+      <p>Ben je zeker dat je alle aanwezigheden van vandaag wil wissen?</p>
+      <div class="attendance-confirm-actions">
+        <button type="button" class="attendance-confirm-no">Nee</button>
+        <button type="button" class="attendance-confirm-yes">Ja, wissen</button>
+      </div>
+    </div>`;
+
+  const close=()=>overlay.remove();
+  overlay.addEventListener('click',event=>{if(event.target===overlay)close();});
+  overlay.querySelector('.attendance-confirm-no')?.addEventListener('click',close);
+  overlay.querySelector('.attendance-confirm-yes')?.addEventListener('click',async()=>{
+    const yesButton=overlay.querySelector('.attendance-confirm-yes');
+    if(yesButton)yesButton.disabled=true;
+    await clearAttendance();
+    close();
+  });
+
+  document.body.appendChild(overlay);
+  overlay.querySelector('.attendance-confirm-no')?.focus();
+}
+
 function header(){
   const name=profile?.display_name||'Welkom';
   return `<header class="topbar"><div class="brand"><div class="fox">🦊</div><div><h1>De Vosjes</h1><p>Wie is er vandaag?</p></div></div><nav class="main-nav"><button class="nav-item"><span>📅</span><small>Maandkalender</small></button><button class="nav-item"><span>🗓️</span><small>Weekkalender</small></button><button class="nav-item"><span>➡️</span><small>Dagverloop</small></button><button class="nav-item"><span>🌤️</span><small>Weer</small></button><button class="nav-item"><span>👕</span><small>Kleding</small></button><button class="nav-item"><span>🎲</span><small>Klastaken</small></button><button class="nav-item active"><span>🙋</span><small>Aanwezigheden</small></button></nav><div class="account">${name} <button id="attendance-logout">Uitloggen</button></div></header>`;
@@ -192,7 +222,7 @@ function render(){
   app().innerHTML=`<main class="page attendance-page">${header()}<section class="attendance-board"><div class="attendance-image-wrap"><img class="attendance-image" src="${imagePath()}" alt="Klas met ${count} aanwezige kinderen"></div><div class="attendance-controls"><div class="attendance-counter" aria-label="${count} van ${students.length||25} kinderen aanwezig"><strong>${count}</strong><span>/${students.length||25}</span></div><button type="button" class="attendance-clear" id="attendance-clear">🗑️ Wissen</button></div><div class="attendance-students">${buttons||'<p class="attendance-empty">Nog geen leerlingen gevonden. Voeg ze eerst toe bij Klastaken.</p>'}</div>${statusMessage?`<p class="attendance-status">${statusMessage}</p>`:''}</section></main>`;
 
   document.querySelector('#attendance-logout')?.addEventListener('click',()=>supabase.auth.signOut());
-  document.querySelector('#attendance-clear')?.addEventListener('click',clearAttendance);
+  document.querySelector('#attendance-clear')?.addEventListener('click',showClearConfirmation);
   document.querySelectorAll('.attendance-student').forEach(button=>{
     button.addEventListener('click',()=>toggleStudent(button.dataset.studentId));
   });
