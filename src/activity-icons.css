@@ -13,7 +13,7 @@
   height: 1.3em;
 }
 
-/* Dagverloop: grote pictogramknop met duidelijke ruimte tussen pictogram en label. */
+/* Dagverloop: grote pictogramknop met aparte ruimte voor het label. */
 .day-row .day-slot {
   min-height: 235px !important;
   padding: 30px 2px 10px !important;
@@ -31,29 +31,33 @@
   overflow: visible;
 }
 
+/* De span vult de volledige knop zodat het pictogram niet bovenin blijft hangen. */
 .day-row .day-activity > span {
-  font-size: 114px !important;
+  font-size: 122px !important;
   width: 100%;
-  height: 138px;
+  height: 100%;
   display: grid;
   place-items: center;
   line-height: 1;
-  overflow: visible;
+  overflow: hidden;
 }
 
+/* De bronafbeeldingen bevatten zelf vaak transparante marge. Een lichte schaalvergroting
+   benut de witte knop beter zonder de knop of kolommen groter te maken. */
 .day-row .day-activity .activity-icon-image {
-  width: min(132px, calc(100% - 2px));
-  height: 132px;
+  width: min(138px, calc(100% - 2px));
+  height: 138px;
   max-width: none;
-  max-height: 138px;
+  max-height: none;
   object-fit: contain;
-  transform: none;
+  transform: scale(1.10);
+  transform-origin: center;
 }
 
-/* Het label komt pas na de span; zo ontstaat echte ruimte tussen afbeelding en tekst. */
+/* Duidelijke lucht tussen de afgeronde knoprand en het label. */
 .day-row .day-activity small {
   position: absolute;
-  top: 184px;
+  top: calc(100% + 14px);
   left: -2px;
   right: -2px;
   width: auto;
