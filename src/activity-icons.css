@@ -31,7 +31,6 @@
   overflow: visible;
 }
 
-/* De span vult de volledige knop zodat het pictogram niet bovenin blijft hangen. */
 .day-row .day-activity > span {
   font-size: 122px !important;
   width: 100%;
@@ -42,8 +41,6 @@
   overflow: hidden;
 }
 
-/* De bronafbeeldingen bevatten zelf vaak transparante marge. Een lichte schaalvergroting
-   benut de witte knop beter zonder de knop of kolommen groter te maken. */
 .day-row .day-activity .activity-icon-image {
   width: min(138px, calc(100% - 2px));
   height: 138px;
@@ -54,15 +51,16 @@
   transform-origin: center;
 }
 
-/* Duidelijke lucht tussen de afgeronde knoprand en het label. */
-.day-row .day-activity small {
+/* Label onder de activiteitenknop. */
+.day-row .day-activity small,
+.day-row .day-activity .day-activity-label {
   position: absolute;
-  top: calc(100% + 14px);
+  top: calc(100% + 4px);
   left: -2px;
   right: -2px;
   width: auto;
   min-height: 20px;
-  padding: 0 2px;
+  padding: 10px 2px 0;
   font-size: 11px !important;
   line-height: 1.2;
   font-weight: 700;
