@@ -36,6 +36,12 @@ const styles = () => {
 .day-calendar-title h2{font-size:30px;color:#285d39}
 .day-calendar-title p,.day-sidebar>p{color:#718176}
 .day-calendar-title button{border:0;border-radius:12px;padding:10px 14px;background:#f1f6ef;color:#496153;font-weight:700;cursor:pointer}
+.day-current-wrap{width:100%;height:230px;display:grid;place-items:center;margin:0 auto 14px}
+.day-current-activity{width:230px;height:230px;display:grid;place-items:center}
+.day-current-activity-icon{width:205px;height:205px;display:grid;place-items:center;font-size:170px;line-height:1}
+.day-current-activity-icon .activity-icon-image{display:block;width:100%;height:100%;max-width:none;object-fit:contain}
+.day-current-activity.is-changing .day-current-activity-icon{animation:dayCurrentFade .45s ease both}
+@keyframes dayCurrentFade{0%{opacity:0;transform:scale(.96)}100%{opacity:1;transform:scale(1)}}
 .day-calendar-scroll{overflow-x:auto;padding-bottom:2px}
 .day-row{display:grid;grid-template-columns:repeat(14,minmax(72px,1fr));min-width:980px;border:2px solid #dfe9dd;border-radius:18px;overflow:hidden;background:#fbfdf9}
 .day-slot{position:relative;min-height:165px;border-right:1px solid #dfe9dd;padding:30px 6px 8px;display:flex;align-items:center;justify-content:center}
@@ -81,8 +87,8 @@ const styles = () => {
 @keyframes dayActivitySpotlight{0%{opacity:0}10%{opacity:1}84%{opacity:1}100%{opacity:0}}
 @keyframes dayActivityCard{0%{transform:scale(.9)}12%{transform:scale(1)}84%{transform:scale(1)}100%{transform:scale(.96)}}
 @media(max-width:1000px){.day-groups{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:650px){.day-calendar-board,.day-sidebar{padding:12px}.day-calendar-title{align-items:flex-start;flex-direction:column}.day-groups{grid-template-columns:1fr}.day-row,.day-slider-wrap,.day-periods{min-width:980px}.day-activity-spotlight-card{width:min(360px,82vw);min-height:min(360px,82vw);padding:24px}.day-activity-spotlight-icon{width:220px;height:220px;font-size:145px}}
-@media(prefers-reduced-motion:reduce){.day-activity-spotlight,.day-activity-spotlight-card{animation:none}.day-activity-spotlight{opacity:1}}
+@media(max-width:650px){.day-calendar-board,.day-sidebar{padding:12px}.day-calendar-title{align-items:flex-start;flex-direction:column}.day-current-wrap{height:190px;margin-bottom:10px}.day-current-activity{width:190px;height:190px}.day-current-activity-icon{width:170px;height:170px;font-size:140px}.day-groups{grid-template-columns:1fr}.day-row,.day-slider-wrap,.day-periods{min-width:980px}.day-activity-spotlight-card{width:min(360px,82vw);min-height:min(360px,82vw);padding:24px}.day-activity-spotlight-icon{width:220px;height:220px;font-size:145px}}
+@media(prefers-reduced-motion:reduce){.day-current-activity.is-changing .day-current-activity-icon,.day-activity-spotlight,.day-activity-spotlight-card{animation:none}.day-activity-spotlight{opacity:1}}
 `;
 };
 
@@ -192,7 +198,7 @@ function showActivitySpotlight(slot) {
   activitySpotlightTimer = window.setTimeout(() => spotlight.remove(), 5000);
 }
 
-function render(navigate, profile) {
+function render(navigate, profile, animateCurrent = false) {
   styles();
 
   const canEdit = profile.role === 'teacher';
@@ -200,7 +206,7 @@ function render(navigate, profile) {
   const slotHtml = slots.map((a, i) => `
     <div class="day-slot ${i === 7 ? 'afternoon-start' : ''} ${a ? '' : 'empty-slot'}" data-slot="${i}">
       <div class="slot-number">${i + 1}</div>
-      ${a ? `<div class="day-activity" draggable="true" data-index="${i}"><span>${activityIconMarkup(a.icon, a.label)}</span><small>${a.label}</small></div>` : ''}
+      ${a ? `<div class="day-activity" draggable="true" data-index="${i}"><span>${activityIconMarkup(a.icon, a.label)}</span><small class="day-activity-label">${a.label}</small></div>` : ''}
     </div>
   `).join('');
 
@@ -215,6 +221,10 @@ function render(navigate, profile) {
 
   const arrowSlot = Math.max(0, Math.min(13, Number(calendar.arrow_slot) || 0));
   const arrowLeft = `${arrowSlot * 100 / 13}%`;
+  const currentActivity = calendar.activities.find(a => a.slot === arrowSlot);
+  const currentActivityHtml = currentActivity
+    ? `<div class="day-current-activity ${animateCurrent ? 'is-changing' : ''}" role="status" aria-live="polite" aria-label="Huidige activiteit: ${currentActivity.label}"><div class="day-current-activity-icon">${activityIconMarkup(currentActivity.icon, currentActivity.label)}</div></div>`
+    : '<div class="day-current-activity" role="status" aria-live="polite" aria-label="Geen huidige activiteit"></div>';
 
   document.querySelector('#app').innerHTML = `
     <main class="page">
@@ -236,6 +246,7 @@ function render(navigate, profile) {
             <div><h2>Dagverloop</h2><p>Wat komt er vandaag? De pijl toont welke activiteit nu aan de beurt is.</p></div>
             ${canEdit ? '<button id="day-clear">🗑️ Dag leegmaken</button>' : ''}
           </div>
+          <div class="day-current-wrap">${currentActivityHtml}</div>
           <div class="day-calendar-scroll">
             <div class="day-row">${slotHtml}</div>
             <div class="day-slider-wrap">
@@ -391,7 +402,7 @@ function bindArrowSlider(navigate, profile) {
 
     try {
       await saveArrow(pendingSlot);
-      render(navigate, profile);
+      render(navigate, profile, pendingSlot !== previousSlot);
       if (pendingSlot !== previousSlot) showActivitySpotlight(pendingSlot);
     } catch (err) {
       console.error(err);
@@ -419,7 +430,7 @@ function bindArrowSlider(navigate, profile) {
 
     try {
       await saveArrow(slot);
-      render(navigate, profile);
+      render(navigate, profile, slot !== previousSlot);
       if (slot !== previousSlot) showActivitySpotlight(slot);
     } catch (err) {
       console.error(err);
