@@ -43,7 +43,7 @@ function addStyles(){
     .compact-picker-layout .week-title{padding-bottom:10px}
     .compact-picker-layout .week-title p{font-size:13px}
     .compact-picker-layout .week-head-drop{cursor:pointer;min-height:58px!important}
-    .week-picker-head-button{width:100%;height:100%;min-height:52px;border:0;border-radius:8px;background:#fff;color:#31543a;font-weight:800;padding:4px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.05}
+    .week-picker-head-button{width:100%;height:100%;min-height:52px;border:0;border-radius:8px;background:#fff;color:#31543a;font-weight:800;padding:4px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.05;font-size:18px}
     .week-picker-head-button.number{font-size:20px}
     .week-picker-head-button.empty{background:transparent;color:#7f9385;font-size:12px}
     .week-picker-relative{margin:7px 7px 0;min-height:48px;border:2px dashed #c7d7c4;border-radius:11px;background:#fff;color:#607768;font-weight:800;font-size:11px;padding:5px;display:flex;align-items:center;justify-content:center;text-align:center;width:calc(100% - 14px)}
