@@ -13,49 +13,58 @@
   height: 1.3em;
 }
 
-/* Dagverloop: geef het pictogram zoveel mogelijk ruimte binnen de 14 kolommen. */
+/* Dagverloop: een ruim vak met een grote pictogramknop en aparte ruimte voor het label. */
 .day-row .day-slot {
-  min-height: 225px !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-  padding-bottom: 10px !important;
+  min-height: 245px !important;
+  padding: 30px 2px 18px !important;
+  align-items: flex-start !important;
 }
 
 .day-row .day-activity {
-  min-height: 158px !important;
-  padding: 0 !important;
-  gap: 1px !important;
-  overflow: visible;
-}
-
-.day-row .day-activity > span {
-  font-size: 76px !important;
+  position: relative;
   width: 100%;
-  min-height: 90px;
-  display: grid;
+  min-height: 158px !important;
+  height: 158px;
+  padding: 0 !important;
+  gap: 0 !important;
+  display: grid !important;
   place-items: center;
   overflow: visible;
 }
 
-.day-row .day-activity .activity-icon-image {
-  width: 76px;
-  height: 76px;
-  max-width: none;
-  max-height: none;
-  transform: scale(1.16);
-  transform-origin: center;
+.day-row .day-activity > span {
+  font-size: 88px !important;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  line-height: 1;
 }
 
-/* Tekst blijft leesbaar en krijgt meer plaats onder het grotere pictogram. */
+.day-row .day-activity .activity-icon-image {
+  width: 96px;
+  height: 96px;
+  max-width: calc(100% - 6px);
+  max-height: 120px;
+  object-fit: contain;
+  transform: none;
+}
+
+/* Het label staat buiten de witte knop en krijgt onderaan zijn eigen ruimte. */
 .day-row .day-activity small {
-  font-size: 11px !important;
-  line-height: 1.15;
+  position: absolute;
+  top: calc(100% + 9px);
+  left: -2px;
+  right: -2px;
+  width: auto;
   min-height: 34px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  width: 100%;
-  padding: 4px 1px 0;
+  padding: 0 2px;
+  font-size: 11px !important;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #496153;
+  text-align: center;
+  display: block;
   overflow: visible;
 }
 
