@@ -51,10 +51,10 @@
   transform: none;
 }
 
-/* Iets meer lucht boven het label, maar minder ongebruikte ruimte eronder. */
+/* Extra afstand tussen de pictogramknop en het label. */
 .day-row .day-activity small {
   position: absolute;
-  top: calc(100% + 12px);
+  top: calc(100% + 18px);
   left: -2px;
   right: -2px;
   width: auto;
