@@ -68,6 +68,22 @@ footer,
   min-width: 0;
 }
 
+/* The wider weather page has room for larger, clearer palette pictograms. */
+@media (min-width: 901px) {
+  .weather-picto.large {
+    width: 54px !important;
+    height: 54px !important;
+  }
+
+  .weather-emoji.large {
+    font-size: 42px !important;
+  }
+
+  .weather-palette-item {
+    min-height: 86px !important;
+  }
+}
+
 @media (min-width: 1200px) {
   .page,
   .weather-page {
