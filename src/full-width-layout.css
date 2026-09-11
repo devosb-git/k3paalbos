@@ -12,6 +12,7 @@
 footer,
 .weather-page .topbar,
 .weather-page .weather-card,
+.weather-board,
 .day-calendar-content,
 .tasks-board,
 .dolls-shell,
@@ -25,7 +26,8 @@ footer,
 .clothing-week,
 .clothing-week-grid,
 .clothing-builder,
-.clothing-editor {
+.clothing-editor,
+.clothing-builder-card {
   width: 100% !important;
   max-width: none !important;
 }
@@ -36,10 +38,12 @@ footer,
 .dolls-shell,
 .attendance-board,
 .weather-page .weather-card,
+.weather-board,
 .clothing-shell,
 .clothing-content,
 .clothing-builder,
-.clothing-editor {
+.clothing-editor,
+.clothing-builder-card {
   margin-left: 0 !important;
   margin-right: 0 !important;
 }
@@ -52,11 +56,15 @@ footer,
   max-width: none !important;
 }
 
-/* Let the week calendar actually benefit from the wider viewport. */
+/* Let the wider pages actually benefit from the wider viewport. */
 .week-wrap,
 .calendar-wrap,
 .day-calendar-board,
-.day-sidebar {
+.day-sidebar,
+.weather-table-wrap,
+.weather-table,
+.clothing-week-grid,
+.clothing-builder-rows {
   min-width: 0;
 }
 
