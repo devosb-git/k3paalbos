@@ -1,26 +1,73 @@
 /*
  * Full-width layout override
  *
- * Desktop/tablet pages use almost all available horizontal space while
- * retaining the existing page padding. Individual cards and sidebars keep
- * their own dimensions, so only the outer layout constraint is removed.
+ * All main application pages may use almost the full browser width.
+ * Page padding remains in place so content never touches the viewport edge.
  */
 
+/* Shared app shell */
 .topbar,
 .content,
 .week-content,
 footer,
 .weather-page .topbar,
-.weather-page .weather-card {
-  width: 100%;
-  max-width: none;
+.weather-page .weather-card,
+.day-calendar-content,
+.tasks-board,
+.dolls-shell,
+.attendance-board,
+.attendance-image-wrap,
+.attendance-controls,
+.attendance-students,
+.clothing-page,
+.clothing-shell,
+.clothing-content,
+.clothing-week,
+.clothing-week-grid,
+.clothing-builder,
+.clothing-editor {
+  width: 100% !important;
+  max-width: none !important;
 }
 
-/* Keep a little extra breathing room on very wide screens without giving up
-   meaningful horizontal workspace. */
+/* Page-specific shells that previously centered inside a narrower column. */
+.day-calendar-content,
+.tasks-board,
+.dolls-shell,
+.attendance-board,
+.weather-page .weather-card,
+.clothing-shell,
+.clothing-content,
+.clothing-builder,
+.clothing-editor {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Attendance had several nested 1180px limits. */
+.attendance-image-wrap,
+.attendance-controls,
+.attendance-students {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Let the week calendar actually benefit from the wider viewport. */
+.week-wrap,
+.calendar-wrap,
+.day-calendar-board,
+.day-sidebar {
+  min-width: 0;
+}
+
 @media (min-width: 1200px) {
   .page,
   .weather-page {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .dolls-shell {
     padding-left: 24px;
     padding-right: 24px;
   }
