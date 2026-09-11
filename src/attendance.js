@@ -63,6 +63,18 @@ function preloadClassroomImages(){
   }
 }
 
+function sortStudentsAlphabetically(){
+  students.sort((a,b)=>a.name.localeCompare(b.name,'nl',{sensitivity:'base'}));
+}
+
+function shuffleStudents(){
+  for(let i=students.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [students[i],students[j]]=[students[j],students[i]];
+  }
+  render();
+}
+
 async function getProfile(){
   const {data:{user}}=await supabase.auth.getUser();
   if(!user)return null;
@@ -78,6 +90,7 @@ async function loadStudents(){
     return;
   }
   students=(data||[]).slice(0,25);
+  sortStudentsAlphabetically();
   if((data||[]).length>25)statusMessage='Er zijn meer dan 25 actieve leerlingen. Voor aanwezigheden worden de eerste 25 namen getoond.';
 }
 
@@ -133,7 +146,8 @@ async function clearAttendance(){
 
   presentIds=new Set();
   statusMessage='';
-  updateAttendanceView();
+  sortStudentsAlphabetically();
+  render();
 }
 
 function showClearConfirmation(){
@@ -219,9 +233,10 @@ function render(){
     return `<button type="button" class="attendance-student ${present?'present':''}" data-student-id="${student.id}" aria-pressed="${present}">${student.name}</button>`;
   }).join('');
 
-  app().innerHTML=`<main class="page attendance-page">${header()}<section class="attendance-board"><div class="attendance-image-wrap"><img class="attendance-image" src="${imagePath()}" alt="Klas met ${count} aanwezige kinderen"></div><div class="attendance-controls"><div class="attendance-counter" aria-label="${count} van ${students.length||25} kinderen aanwezig"><strong>${count}</strong><span>/${students.length||25}</span></div><button type="button" class="attendance-clear" id="attendance-clear">🗑️ Wissen</button></div><div class="attendance-students">${buttons||'<p class="attendance-empty">Nog geen leerlingen gevonden. Voeg ze eerst toe bij Klastaken.</p>'}</div>${statusMessage?`<p class="attendance-status">${statusMessage}</p>`:''}</section></main>`;
+  app().innerHTML=`<main class="page attendance-page">${header()}<section class="attendance-board"><div class="attendance-image-wrap"><img class="attendance-image" src="${imagePath()}" alt="Klas met ${count} aanwezige kinderen"></div><div class="attendance-controls"><div class="attendance-counter" aria-label="${count} van ${students.length||25} kinderen aanwezig"><strong>${count}</strong><span>/${students.length||25}</span></div><div class="attendance-control-actions"><button type="button" class="attendance-shuffle" id="attendance-shuffle">🔀 Namen mengen</button><button type="button" class="attendance-clear" id="attendance-clear">🗑️ Wissen</button></div></div><div class="attendance-students">${buttons||'<p class="attendance-empty">Nog geen leerlingen gevonden. Voeg ze eerst toe bij Klastaken.</p>'}</div>${statusMessage?`<p class="attendance-status">${statusMessage}</p>`:''}</section></main>`;
 
   document.querySelector('#attendance-logout')?.addEventListener('click',()=>supabase.auth.signOut());
+  document.querySelector('#attendance-shuffle')?.addEventListener('click',shuffleStudents);
   document.querySelector('#attendance-clear')?.addEventListener('click',showClearConfirmation);
   document.querySelectorAll('.attendance-student').forEach(button=>{
     button.addEventListener('click',()=>toggleStudent(button.dataset.studentId));
