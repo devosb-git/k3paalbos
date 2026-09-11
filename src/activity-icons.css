@@ -15,14 +15,16 @@
 
 /* Dagverloop: geef het pictogram zoveel mogelijk ruimte binnen de 14 kolommen. */
 .day-row .day-slot {
+  min-height: 195px !important;
   padding-left: 2px !important;
   padding-right: 2px !important;
-  padding-bottom: 5px !important;
+  padding-bottom: 8px !important;
 }
 
 .day-row .day-activity {
-  padding: 3px 1px !important;
-  gap: 2px !important;
+  min-height: 132px !important;
+  padding: 4px 1px !important;
+  gap: 4px !important;
 }
 
 .day-row .day-activity > span {
@@ -39,11 +41,11 @@
   max-height: 70px;
 }
 
-/* Tekst blijft even groot, maar krijgt een eigen compacte regel onderaan. */
+/* Tekst blijft even groot en krijgt opnieuw voldoende verticale ruimte. */
 .day-row .day-activity small {
   font-size: 11px !important;
-  line-height: 1.05;
-  min-height: 23px;
+  line-height: 1.1;
+  min-height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
