@@ -3,6 +3,7 @@ import './style.css';
 import { showWeather } from './weather.js';
 import { showClothing } from './clothing.js';
 import { showDayCalendar } from './day-calendar.js';
+import { showGallery } from './photo-gallery.js';
 import { clearWeekState, getWeekState, loadWeekState, updateWeekState } from './week-calendar-store.js';
 import { activityIconMarkup } from './activity-icon.js';
 const supabase=createClient(import.meta.env.VITE_SUPABASE_URL,import.meta.env.VITE_SUPABASE_ANON_KEY);
@@ -44,6 +45,6 @@ function dropWeekPart(e){if(!dragged)return;const target=document.elementFromPoi
 function dropActivity(e){if(!dragged)return;const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('.activity-zone');if(!target)return;const day=+target.dataset.activityDay;if(dragged.type==='activity'){addWeekActivity(day,dragged.value)}else if(dragged.type==='move-activity'){const s=loadWeek(),max=day===3?4:7;if((s.activities[day]||[]).length>=max&&day!==dragged.value.from){dragged=null;return}const from=dragged.value.from,index=dragged.value.index,a={icon:dragged.value.icon,label:dragged.value.label};s.activities[from]=(s.activities[from]||[]).filter((_,i)=>i!==index);s.activities[day]=s.activities[day]||[];s.activities[day].push(a);saveWeek(s);dragged=null;renderPage()}}
 function addWeekActivity(day,a){const s=loadWeek(),max=day===3?4:7;s.activities[day]=s.activities[day]||[];if(s.activities[day].length>=max)return;s.activities[day].push({icon:a.icon,label:a.label});saveWeek(s);dragged=null;renderPage()}
 async function add(day,x){const pos=items.filter(i=>i.day===day).length,{data,error}=await supabase.from('calendar_items').insert({day,icon:x.icon,label:x.label,position:pos}).select().single();if(!error){items.push(data);dragged=null;renderPage()}}
-function renderPage(){if(currentPage==='calendar')return renderCalendar();if(currentPage==='week')return renderWeek();if(currentPage==='day')return showDayCalendar(navigate,profile);if(currentPage==='weather')return showWeather(profile);if(currentPage==='clothing')return showClothing(profile)}
+function renderPage(){if(currentPage==='calendar')return renderCalendar();if(currentPage==='week')return renderWeek();if(currentPage==='day')return showDayCalendar(navigate,profile);if(currentPage==='weather')return showWeather(profile);if(currentPage==='clothing')return showClothing(profile);if(currentPage==='gallery')return showGallery(profile)}
 async function start(){const {data:{session}}=await supabase.auth.getSession();if(!session)return login();profile=await getProfile(session.user.id);if(!profile)return denied();await load();try{await loadWeekState()}catch(error){console.error('Weekkalender laden mislukt:',error)}renderPage()}
 supabase.auth.onAuthStateChange((_event,session)=>{if(!session)login()});start();

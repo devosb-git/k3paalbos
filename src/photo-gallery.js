@@ -1,0 +1,153 @@
+import { createClient } from '@supabase/supabase-js';
+import './photo-gallery.css';
+const supabase=createClient(import.meta.env.VITE_SUPABASE_URL,import.meta.env.VITE_SUPABASE_ANON_KEY);
+const CLASS_ID='00000000-0000-4000-8000-000000000001';
+const BUCKET='class-gallery';
+let galleryDisplayName='Welkom';let photos=[],folders=[],currentFolder='all',slideshowFolder='all',urls=new Map(),slide=0,seconds=10,timer=null,playing=false,active=false,fullscreen=false,loading=false,dragPhotoId=null,touchPhotoDrag=null,dragOverFolder=null;
+const root=()=>document.querySelector('#app');
+function uniquePhotoId(){if(globalThis.crypto?.randomUUID)return globalThis.crypto.randomUUID();const bytes=new Uint8Array(16);if(globalThis.crypto?.getRandomValues){globalThis.crypto.getRandomValues(bytes);}else{for(let i=0;i<bytes.length;i++)bytes[i]=Math.floor(Math.random()*256);}bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;return [...bytes].map((b,i)=>[4,6,8,10].includes(i)?'-'+b.toString(16).padStart(2,'0'):b.toString(16).padStart(2,'0')).join('');}
+function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function stop(){clearInterval(timer);timer=null;playing=false;}
+function release(){stop();active=false;urls.clear();clearPhotoDrag();}
+function status(message,error=false){const el=document.querySelector('#gallery-status');if(el){el.textContent=message;el.classList.toggle('error',error);}}
+async function load(){const {data:folderRows,error:folderError}=await supabase.from('gallery_folders').select('id,name,created_at,parent_id').eq('class_id',CLASS_ID).order('name');if(folderError)throw folderError;folders=folderRows||[];if(currentFolder!=='all'&&currentFolder!=='loose'&&!folders.some(f=>f.id===currentFolder))currentFolder='all';if(slideshowFolder!=='all'&&slideshowFolder!=='loose'&&!folders.some(f=>f.id===slideshowFolder))slideshowFolder='all';const {data,error}=await supabase.from('gallery_photos').select('id,storage_path,caption,created_at,show_in_slideshow,rotation_degrees,folder_id').eq('class_id',CLASS_ID).eq('approved',true).order('created_at',{ascending:false});if(error)throw error;photos=data||[];urls.clear();if(photos.length){const {data:signed,error:signError}=await supabase.storage.from(BUCKET).createSignedUrls(photos.map(p=>p.storage_path),3600);if(signError)throw signError;photos.forEach((p,i)=>{if(signed[i]?.signedUrl)urls.set(p.id,signed[i].signedUrl)});}slide=Math.min(slide,Math.max(0,selectedPhotos().length-1));}
+function rotation(photo){return ((Number(photo?.rotation_degrees)||0)%360+360)%360}
+function rotatedImage(photo,extra=''){return `<span class="gallery-rotated-frame" style="--gallery-rotation:${rotation(photo)}deg"><img src="${escapeHtml(urls.get(photo.id)||'')}" alt="${escapeHtml(photo.caption||'Klasfoto')}" ${extra}></span>`}
+function matchesFolder(photo,folder){return folder==='all'||(folder==='loose'?!photo.folder_id:photo.folder_id===folder)}
+function selectedPhotos(){return photos.filter(p=>p.show_in_slideshow&&matchesFolder(p,slideshowFolder))}
+function folderPath(id){const chain=[];const seen=new Set();let f=folders.find(x=>x.id===id);while(f&&!seen.has(f.id)){chain.unshift(f);seen.add(f.id);f=folders.find(x=>x.id===f.parent_id)}return chain}
+function nestedFolders(parent=null,depth=0,seen=new Set()){if(depth>20)return [];return folders.filter(f=>(f.parent_id||null)===parent&&!seen.has(f.id)).sort((a,b)=>a.name.localeCompare(b.name,'nl')).flatMap(f=>{const next=new Set(seen);next.add(f.id);return [{folder:f,depth,path:folderPath(f.id).map(x=>x.name).join(' / ')},...nestedFolders(f.id,depth+1,next)]})}
+function folderOptionRows(selected){return nestedFolders().map(({folder:f,depth,path})=>`<option value="${f.id}" ${selected===f.id?'selected':''}>${escapeHtml(depth?'↳ '.repeat(depth)+'Submap: '+path:'Map: '+f.name)}</option>`).join('')}
+function folderOptions(selected){return `<option value="all" ${selected==='all'?'selected':''}>Alle foto's</option><option value="loose" ${selected==='loose'?'selected':''}>Losse foto's</option>${folderOptionRows(selected)}`}
+function moveOptions(selected){return `<option value="loose" ${!selected?'selected':''}>Losse foto's</option>${folderOptionRows(selected)}`}
+function folderCards(){
+ const inside=currentFolder!=='all'&&currentFolder!=='loose';
+ const parent=inside?folders.find(f=>f.id===currentFolder):null;
+ const visible=folders.filter(f=>(f.parent_id||null)===(inside?currentFolder:null)).sort((a,b)=>a.name.localeCompare(b.name,'nl'));
+ const crumbs=inside?`<div class="gallery-breadcrumb"><button type="button" data-folder="all">Alle mappen</button>${folderPath(currentFolder).map(f=>`<span>›</span><button type="button" data-folder="${f.id}">${escapeHtml(f.name)}</button>`).join('')}</div>`:'';
+ return `<section class="gallery-folders"><div class="gallery-folder-heading"><h3>📁 Fotomappen</h3><button id="gallery-add-folder" type="button">＋ ${inside?'Nieuwe submap':'Nieuwe map'}</button></div>${crumbs}<div class="gallery-folder-list">${!inside?`<button class="gallery-folder-tile ${currentFolder==='all'?'active':''}" data-folder="all"><span>🗂️</span><strong>Alle foto's</strong><small>${photos.length} foto's</small></button><button class="gallery-folder-tile ${currentFolder==='loose'?'active':''}" data-folder="loose"><span>📷</span><strong>Losse foto's</strong><small>${photos.filter(p=>!p.folder_id).length} foto's</small></button>`:`<button class="gallery-folder-tile gallery-folder-back" data-folder="${parent?.parent_id||'all'}"><span>↩️</span><strong>Terug naar boven</strong></button>`}${visible.map(f=>`<div class="gallery-folder-tile ${currentFolder===f.id?'active':''}"><button type="button" class="gallery-folder-open" data-folder="${f.id}"><span>${inside?'📂':'📁'}</span><strong>${escapeHtml(f.name)}</strong>${inside?'<em>Submap</em>':''}<small>${photos.filter(p=>p.folder_id===f.id).length} foto's · ${folders.filter(x=>x.parent_id===f.id).length} submappen</small></button><div class="gallery-folder-actions"><button type="button" data-rename-folder="${f.id}" aria-label="Map hernoemen" title="Map hernoemen">✎</button><button type="button" data-delete-folder="${f.id}" aria-label="Map verwijderen" title="Map verwijderen">🗑️</button></div></div>`).join('')}</div></section>`
+}
+function header(){return `<header class="topbar"><div class="brand"><div class="fox">🦊</div><div><h1>De Vosjes</h1><p>Onze mooiste klasmomenten</p></div></div><nav class="main-nav"><button class="nav-item active" data-page="gallery"><span>📸</span><small>Fotogalerij</small></button></nav><div class="account">${escapeHtml(galleryDisplayName)} <button id="gallery-logout">Uitloggen</button></div></header>`;}
+function render(){if(!active)return;clearPhotoDrag();const selected=selectedPhotos(),p=selected[slide];root().innerHTML=`<main class="page gallery-page">${header()}<section class="gallery-shell"><div class="gallery-heading"><div><h2>📸 Fotogalerij</h2><p>Bewaar mooie klasmomenten en toon ze op het digitale bord.</p></div><label class="gallery-upload">＋ Foto's toevoegen<input id="gallery-files" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple hidden></label></div><div id="gallery-status" role="status" aria-live="polite"></div><div class="gallery-upload-progress"><progress id="gallery-progress" value="0" max="1" hidden></progress><small id="gallery-progress-detail"></small></div><section class="gallery-player" id="gallery-player"><div class="gallery-stage">${p&&urls.get(p.id)?rotatedImage(p):`<div class="gallery-placeholder">🦊<p>${selected.length?'De foto kan niet geladen worden.':'Selecteer hieronder foto’s om ze in de diavoorstelling te tonen.'}</p></div>`}</div><div class="gallery-controls"><button id="gallery-prev" ${selected.length<2?'disabled':''} aria-label="Vorige foto">‹</button><button id="gallery-play" ${!selected.length?'disabled':''}>${playing?'⏸ Pauzeren':'▶ Afspelen'}</button><button id="gallery-next" ${selected.length<2?'disabled':''} aria-label="Volgende foto">›</button><label>Foto’s uit <select id="gallery-slideshow-folder">${folderOptions(slideshowFolder)}</select></label><label>Wissel na <select id="gallery-interval">${[5,10,15,30].map(n=>`<option value="${n}" ${seconds===n?'selected':''}>${n} seconden</option>`).join('')}</select></label><span class="gallery-count">${selected.length?slide+1:0} / ${selected.length}</span><button id="gallery-fullscreen">⛶ Volledig scherm</button></div></section>${folderCards()}<div class="gallery-list-title"><h3>${currentFolder==='all'?"Alle foto’s":currentFolder==='loose'?"Losse foto’s":escapeHtml(folders.find(f=>f.id===currentFolder)?.name||"Foto’s beheren")}</h3><span>${photos.filter(p=>matchesFolder(p,currentFolder)).length} foto’s in deze weergave</span></div><div class="gallery-grid">${photos.filter(p=>matchesFolder(p,currentFolder)).map((photo,i)=>`<article class="gallery-card"><button class="gallery-preview" data-view="${photo.id}" draggable="true" title="Foto bekijken of naar een map slepen">${rotatedImage(photo,'loading="lazy"')}</button><label class="gallery-show-toggle"><input type="checkbox" data-show="${photo.id}" ${photo.show_in_slideshow?'checked':''}> Diavoorstelling</label><label class="gallery-move-label">Map <select data-move-photo="${photo.id}" aria-label="Foto naar map verplaatsen">${moveOptions(photo.folder_id)}</select></label><div class="gallery-card-bottom"><span>${escapeHtml(photo.caption||new Date(photo.created_at).toLocaleDateString('nl-BE'))}</span><div class="gallery-card-actions"><button type="button" class="gallery-rotate" data-rotate="${photo.id}" title="Foto 90° draaien" aria-label="Foto 90 graden rechtsom draaien">↻</button><button data-delete="${photo.id}" aria-label="Foto verwijderen" title="Foto verwijderen">🗑️</button></div></div></article>`).join('')}</div></section></main>`;bind();}
+function next(step=1){const selected=selectedPhotos();if(!selected.length)return;slide=(slide+step+selected.length)%selected.length;const stage=document.querySelector('.gallery-stage');const p=selected[slide];if(stage)stage.innerHTML=rotatedImage(p);const count=document.querySelector('.gallery-count');if(count)count.textContent=`${slide+1} / ${selected.length}`;}
+function play(){stop();if(!selectedPhotos().length)return;playing=true;timer=setInterval(()=>{if(active)next();else stop()},seconds*1000);const b=document.querySelector('#gallery-play');if(b)b.textContent='⏸ Pauzeren';}
+function toggle(){if(playing){stop();document.querySelector('#gallery-play').textContent='▶ Afspelen';}else play();}
+const UPLOAD_TIMEOUT_MS=45000;
+function withTimeout(promise,ms=UPLOAD_TIMEOUT_MS){return Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error('Geen antwoord binnen 45 seconden. Controleer je verbinding en probeer één foto tegelijk.')),ms))]);}
+function uploadProgress(done,total,message,failed=0){const bar=document.querySelector('#gallery-progress');if(bar){bar.hidden=false;bar.max=total;bar.value=done;}const detail=document.querySelector('#gallery-progress-detail');if(detail)detail.textContent=message;status(message,failed>0);}
+async function upload(files){
+ if(loading)return;
+ loading=true;
+ const button=document.querySelector('.gallery-upload');
+ if(button)button.classList.add('is-uploading');
+ let count=0,failed=0,lastError='';
+ let user;
+ try{
+  uploadProgress(0,files.length,'Stap 1/3: aanmelding controleren…');
+  const authResult=await withTimeout(supabase.auth.getUser(),12000);
+  if(authResult.error||!authResult.data?.user)throw new Error('Je aanmelding is verlopen. Log opnieuw in.');
+  user=authResult.data.user;
+  uploadProgress(0,files.length,'Stap 2/3: fotoformaat en grootte controleren…');
+  for(let i=0;i<files.length;i++){
+   const file=files[i];
+   const name=file.name||'foto';
+   uploadProgress(i,files.length,`Foto ${i+1} van ${files.length} voorbereiden: ${name}`,failed);
+   const mime=file.type||({'jpg':'image/jpeg','jpeg':'image/jpeg','png':'image/png','webp':'image/webp','heic':'image/heic','heif':'image/heif'}[name.split('.').pop()?.toLowerCase()]||'');
+   if(!['image/jpeg','image/png','image/webp','image/heic','image/heif'].includes(mime)||file.size>10*1024*1024){
+    failed++;lastError=`${name}: niet ondersteund formaat of groter dan 10 MB`;
+    uploadProgress(i+1,files.length,`Foto ${i+1} overgeslagen: ${lastError}`,failed);
+    continue;
+   }
+   const ext=({'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/heic':'heic','image/heif':'heif'})[mime];
+   const path=`${CLASS_ID}/${uniquePhotoId()}.${ext}`;
+   try{
+    uploadProgress(i,files.length,`Foto ${i+1} van ${files.length} uploaden: ${name} (${(file.size/1048576).toFixed(1)} MB)`,failed);
+    const {error:upError}=await withTimeout(supabase.storage.from(BUCKET).upload(path,file,{contentType:mime,upsert:false}));
+    if(upError)throw upError;
+    uploadProgress(i,files.length,`Foto ${i+1} van ${files.length} bewaren in galerij…`,failed);
+    const {error:dbError}=await withTimeout(supabase.from('gallery_photos').insert({class_id:CLASS_ID,storage_path:path,uploaded_by:user.id,folder_id:currentFolder==='all'||currentFolder==='loose'?null:currentFolder}));
+    if(dbError){await withTimeout(supabase.storage.from(BUCKET).remove([path]),10000).catch(()=>{});throw dbError;}
+    count++;
+    uploadProgress(i+1,files.length,`${count} van ${files.length} foto's opgeslagen`,failed);
+   }catch(error){
+    failed++;lastError=`${name}: ${error.message||'Onbekende fout'}`;
+    uploadProgress(i+1,files.length,`Foto ${i+1} mislukt: ${lastError}`,failed);
+   }
+  }
+  uploadProgress(files.length,files.length,'Stap 3/3: galerij vernieuwen…',failed);
+  await withTimeout(load(),20000);
+  if(active){render();status(failed?`${count} foto('s) toegevoegd, ${failed} mislukt. Laatste fout: ${lastError}`:`Gelukt! ${count} foto('s) toegevoegd.`,failed>0);}
+ }catch(error){status(`Upload onderbroken: ${error.message}`,true);const detail=document.querySelector('#gallery-progress-detail');if(detail)detail.textContent=`Fout: ${error.message}`;}
+ finally{loading=false;const el=document.querySelector('.gallery-upload');if(el)el.classList.remove('is-uploading');}
+}
+function galleryPrompt(title,initial='',confirmLabel='Opslaan'){return new Promise(resolve=>{const overlay=document.createElement('div');overlay.className='gallery-confirm-overlay';overlay.innerHTML=`<form class="gallery-confirm-dialog gallery-folder-dialog"><div class="gallery-confirm-icon">📁</div><h3>${escapeHtml(title)}</h3><input class="gallery-folder-input" maxlength="80" required placeholder="Naam van de map" value="${escapeHtml(initial)}"><div class="gallery-confirm-actions"><button type="button" class="gallery-confirm-cancel">Annuleren</button><button type="submit" class="gallery-confirm-delete gallery-save-folder">${escapeHtml(confirmLabel)}</button></div></form>`;const previous=document.activeElement;const close=value=>{document.removeEventListener('keydown',keys);overlay.remove();previous?.focus?.();resolve(value)};const keys=e=>{if(e.key==='Escape')close(null)};overlay.querySelector('.gallery-confirm-cancel').onclick=()=>close(null);overlay.querySelector('form').onsubmit=e=>{e.preventDefault();close(overlay.querySelector('input').value.trim())};overlay.onclick=e=>{if(e.target===overlay)close(null)};document.body.appendChild(overlay);document.addEventListener('keydown',keys);overlay.querySelector('input').focus()})}
+function galleryConfirm(title,description,confirmLabel){return new Promise(resolve=>{const overlay=document.createElement('div');overlay.className='gallery-confirm-overlay';overlay.innerHTML=`<div class="gallery-confirm-dialog" role="dialog" aria-modal="true"><div class="gallery-confirm-icon">📁</div><h3>${escapeHtml(title)}</h3><p>${escapeHtml(description)}</p><div class="gallery-confirm-actions"><button type="button" class="gallery-confirm-cancel">Annuleren</button><button type="button" class="gallery-confirm-delete">${escapeHtml(confirmLabel)}</button></div></div>`;const previous=document.activeElement;const close=value=>{document.removeEventListener('keydown',keys);overlay.remove();previous?.focus?.();resolve(value)};const keys=e=>{if(e.key==='Escape')close(false)};overlay.querySelector('.gallery-confirm-cancel').onclick=()=>close(false);overlay.querySelector('.gallery-confirm-delete').onclick=()=>close(true);overlay.onclick=e=>{if(e.target===overlay)close(false)};document.body.appendChild(overlay);document.addEventListener('keydown',keys);overlay.querySelector('.gallery-confirm-cancel').focus()})}
+async function createFolder(){const parent_id=currentFolder==='all'||currentFolder==='loose'?null:currentFolder;const name=await galleryPrompt(parent_id?'Nieuwe submap':'Nieuwe fotomap');if(!name)return;const {data,error}=await supabase.from('gallery_folders').insert({class_id:CLASS_ID,name,parent_id}).select('id,name,parent_id,created_at').single();if(error){status('Map maken mislukt: '+error.message,true);return}folders.push(data);render();status(parent_id?'Submap aangemaakt. Sleep foto’s naar de submap.':'Map aangemaakt. Sleep foto’s naar de nieuwe map.')}
+async function renameFolder(id){const folder=folders.find(f=>f.id===id);if(!folder)return;const name=await galleryPrompt('Map hernoemen',folder.name);if(!name||name===folder.name)return;const {error}=await supabase.from('gallery_folders').update({name}).eq('id',id);if(error){status('Hernoemen mislukt: '+error.message,true);return}folder.name=name;render();status('Map hernoemd.')}
+async function deleteFolder(id){
+ const folder=folders.find(f=>f.id===id);if(!folder)return;
+ const descendants=new Set([id]);let previousSize=-1;
+ while(previousSize!==descendants.size){previousSize=descendants.size;folders.forEach(f=>{if(f.parent_id&&descendants.has(f.parent_id))descendants.add(f.id)})}
+ const subCount=descendants.size-1;
+ const count=photos.filter(p=>descendants.has(p.folder_id)).length;
+ const message=`De map "${folder.name}" wordt verwijderd.${subCount?' Ook alle '+subCount+' onderliggende submap(pen) worden verwijderd.':''} ${count} foto('s) blijven behouden bij Losse foto's.`;
+ if(!await galleryConfirm('Map verwijderen?',message,'Map verwijderen'))return;
+ const {error}=await supabase.from('gallery_folders').delete().eq('id',id);
+ if(error){status('Map verwijderen mislukt: '+error.message,true);return}
+ if(descendants.has(currentFolder))currentFolder=folder.parent_id||'all';
+ if(descendants.has(slideshowFolder))slideshowFolder='all';
+ await load();stop();render();status('Map en onderliggende submappen verwijderd. De foto’s zijn behouden bij Losse foto’s.');
+}
+async function movePhoto(id,value){const photo=photos.find(p=>p.id===id);if(!photo)return;const {error}=await supabase.from('gallery_photos').update({folder_id:value==='loose'?null:value}).eq('id',id);if(error){status('Verplaatsen mislukt: '+error.message,true);render();return}photo.folder_id=value==='loose'?null:value;render();status('Foto verplaatst.')}
+async function rotatePhoto(id){const photo=photos.find(p=>p.id===id);if(!photo)return;const nextRotation=(rotation(photo)+90)%360;const button=document.querySelector(`[data-rotate="${id}"]`);if(button)button.disabled=true;try{const {data,error}=await supabase.from('gallery_photos').update({rotation_degrees:nextRotation}).eq('id',id).select('id,rotation_degrees').single();if(error)throw error;photo.rotation_degrees=data.rotation_degrees;document.querySelectorAll('.gallery-card').forEach(card=>{if(card.querySelector(`[data-rotate="${id}"]`)){const frame=card.querySelector('.gallery-rotated-frame');if(frame)frame.style.setProperty('--gallery-rotation',`${rotation(photo)}deg`);}});const current=selectedPhotos()[slide];if(current?.id===id){const stage=document.querySelector('.gallery-stage');if(stage)stage.innerHTML=rotatedImage(photo);}status('Foto 90° gedraaid en opgeslagen.');}catch(error){status('Draaien mislukt: '+error.message,true);}finally{if(button)button.disabled=false;}}
+async function setSlideshowVisibility(id,visible){const {error}=await supabase.from('gallery_photos').update({show_in_slideshow:visible}).eq('id',id);if(error){status('Wijziging niet opgeslagen: '+error.message,true);render();return;}const photo=photos.find(p=>p.id===id);if(photo)photo.show_in_slideshow=visible;stop();slide=Math.min(slide,Math.max(0,selectedPhotos().length-1));render();status(visible?'Foto toegevoegd aan diavoorstelling.':'Foto verborgen in diavoorstelling.');}
+function confirmPhotoDeletion(){return new Promise(resolve=>{const overlay=document.createElement('div');overlay.className='gallery-confirm-overlay';overlay.innerHTML=`<div class="gallery-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="gallery-confirm-title" aria-describedby="gallery-confirm-description"><div class="gallery-confirm-icon">🗑️</div><h3 id="gallery-confirm-title">Foto verwijderen?</h3><p id="gallery-confirm-description">Wil je deze foto definitief verwijderen? Dit kun je niet ongedaan maken.</p><div class="gallery-confirm-actions"><button type="button" class="gallery-confirm-cancel">Annuleren</button><button type="button" class="gallery-confirm-delete">Foto verwijderen</button></div></div>`;const previous=document.activeElement;const finish=answer=>{document.removeEventListener('keydown',onKey);overlay.remove();previous?.focus?.();resolve(answer)};const onKey=e=>{if(e.key==='Escape')finish(false);if(e.key==='Tab'){const buttons=[...overlay.querySelectorAll('button')];const i=buttons.indexOf(document.activeElement);if(e.shiftKey&&i===0){e.preventDefault();buttons[buttons.length-1].focus()}else if(!e.shiftKey&&i===buttons.length-1){e.preventDefault();buttons[0].focus()}}};overlay.querySelector('.gallery-confirm-cancel').onclick=()=>finish(false);overlay.querySelector('.gallery-confirm-delete').onclick=()=>finish(true);overlay.addEventListener('click',e=>{if(e.target===overlay)finish(false)});document.body.appendChild(overlay);document.addEventListener('keydown',onKey);overlay.querySelector('.gallery-confirm-cancel').focus()})}
+async function remove(id){const p=photos.find(x=>x.id===id);if(!p||!await confirmPhotoDeletion())return;const {error}=await supabase.storage.from(BUCKET).remove([p.storage_path]);if(error){status('Verwijderen mislukt: '+error.message,true);return;}const result=await supabase.from('gallery_photos').delete().eq('id',id);if(result.error){status('De foto is verwijderd uit de opslag, maar niet uit de lijst: '+result.error.message,true);return;}await load();render();status('Foto verwijderd.');}
+function clearFolderHighlight(){if(dragOverFolder){dragOverFolder.classList.remove('gallery-drop-over');dragOverFolder=null}}
+function clearPhotoDrag(){clearFolderHighlight();dragPhotoId=null;if(touchPhotoDrag?.ghost)touchPhotoDrag.ghost.remove();if(touchPhotoDrag?.source)touchPhotoDrag.source.classList.remove('gallery-touch-dragging');touchPhotoDrag=null;document.body.classList.remove('gallery-is-dragging')}
+function folderAtPoint(x,y){return document.elementFromPoint(x,y)?.closest('[data-folder]')||null}
+function highlightFolder(folder){if(dragOverFolder===folder)return;clearFolderHighlight();if(folder&&folder.dataset.folder!=='all'){folder.classList.add('gallery-drop-over');dragOverFolder=folder}}
+async function dropPhotoIntoFolder(id,folder){if(!id||!folder||folder==='all')return;const photo=photos.find(p=>p.id===id);if(!photo)return;if((photo.folder_id||'loose')===folder)return;await movePhoto(id,folder)}
+function setupPhotoDrag(){
+ document.querySelectorAll('.gallery-preview').forEach(source=>{
+  source.addEventListener('dragstart',e=>{if(touchPhotoDrag){e.preventDefault();return}dragPhotoId=source.dataset.view;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',dragPhotoId);source.classList.add('gallery-dragging')});
+  source.addEventListener('dragend',()=>{source.classList.remove('gallery-dragging');clearPhotoDrag()});
+  source.addEventListener('pointerdown',e=>{
+   if(e.pointerType!=='touch'&&e.pointerType!=='pen')return;
+   if(e.button!==0)return;
+   clearPhotoDrag();
+   touchPhotoDrag={pointerId:e.pointerId,id:source.dataset.view,source,startX:e.clientX,startY:e.clientY,moved:false,ghost:null};
+   try{source.setPointerCapture(e.pointerId)}catch{}
+  });
+ });
+ document.querySelectorAll('[data-folder]').forEach(folder=>{
+  folder.addEventListener('dragover',e=>{if(!dragPhotoId||folder.dataset.folder==='all')return;e.preventDefault();e.dataTransfer.dropEffect='move';highlightFolder(folder)});
+  folder.addEventListener('dragleave',e=>{if(!folder.contains(e.relatedTarget))clearFolderHighlight()});
+  folder.addEventListener('drop',e=>{if(!dragPhotoId)return;e.preventDefault();e.stopPropagation();const id=dragPhotoId,target=folder.dataset.folder;clearPhotoDrag();dropPhotoIntoFolder(id,target)});
+ });
+}
+function onGalleryPointerMove(e){
+ const d=touchPhotoDrag;if(!d||e.pointerId!==d.pointerId||!active)return;
+ const distance=Math.hypot(e.clientX-d.startX,e.clientY-d.startY);
+ if(!d.moved&&distance<10)return;
+ if(!d.moved){
+  d.moved=true;d.source.classList.add('gallery-touch-dragging');document.body.classList.add('gallery-is-dragging');
+  const ghost=document.createElement('div');ghost.className='gallery-drag-ghost';ghost.textContent='📷 Foto verplaatsen';document.body.appendChild(ghost);d.ghost=ghost;
+ }
+ e.preventDefault();
+ if(e.clientY<90)window.scrollBy(0,-16);else if(e.clientY>window.innerHeight-90)window.scrollBy(0,16);
+ d.ghost.style.left=e.clientX+'px';d.ghost.style.top=e.clientY+'px';
+ highlightFolder(folderAtPoint(e.clientX,e.clientY));
+}
+function onGalleryPointerUp(e){
+ const d=touchPhotoDrag;if(!d||e.pointerId!==d.pointerId)return;
+ const folder=d.moved?folderAtPoint(e.clientX,e.clientY):null,id=d.id,moved=d.moved;
+ clearPhotoDrag();
+ if(moved){e.preventDefault();e.stopPropagation();if(folder)dropPhotoIntoFolder(id,folder.dataset.folder);else status('Sleep de foto naar een map hierboven.')}
+}
+document.addEventListener('pointermove',onGalleryPointerMove,{capture:true,passive:false});
+document.addEventListener('pointerup',onGalleryPointerUp,{capture:true,passive:false});
+document.addEventListener('pointercancel',e=>{if(touchPhotoDrag?.pointerId===e.pointerId)clearPhotoDrag()},true);
+function bind(){document.querySelector('#gallery-logout').onclick=()=>supabase.auth.signOut();document.querySelector('#gallery-files').onchange=e=>{const files=[...e.target.files];if(files.length)upload(files)};document.querySelector('#gallery-prev').onclick=()=>next(-1);document.querySelector('#gallery-next').onclick=()=>next();document.querySelector('#gallery-play').onclick=toggle;document.querySelector('#gallery-slideshow-folder').onchange=e=>{slideshowFolder=e.target.value;stop();slide=0;render()};document.querySelector('#gallery-add-folder').onclick=createFolder;document.querySelectorAll('[data-folder]').forEach(b=>b.onclick=()=>{currentFolder=b.dataset.folder;render()});document.querySelectorAll('[data-rename-folder]').forEach(b=>b.onclick=()=>renameFolder(b.dataset.renameFolder));document.querySelectorAll('[data-delete-folder]').forEach(b=>b.onclick=()=>deleteFolder(b.dataset.deleteFolder));document.querySelectorAll('[data-move-photo]').forEach(b=>b.onchange=()=>movePhoto(b.dataset.movePhoto,b.value));setupPhotoDrag();document.querySelector('#gallery-interval').onchange=e=>{seconds=Number(e.target.value);if(playing)play()};document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{const index=selectedPhotos().findIndex(p=>p.id===b.dataset.view);if(index>=0){slide=index;next(0)}else status('Deze foto is niet geselecteerd voor de diavoorstelling.')});document.querySelectorAll('[data-show]').forEach(b=>b.onchange=()=>setSlideshowVisibility(b.dataset.show,b.checked));document.querySelectorAll('[data-rotate]').forEach(b=>b.onclick=()=>rotatePhoto(b.dataset.rotate));document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.delete));document.querySelector('#gallery-fullscreen').onclick=async()=>{const player=document.querySelector('#gallery-player');if(!document.fullscreenElement){try{await player.requestFullscreen();}catch(e){status('Volledig scherm is niet beschikbaar in deze browser.',true);}}else await document.exitFullscreen();};}
+export async function showGallery(profile){release();galleryDisplayName=profile?.display_name||'Welkom';active=true;root().innerHTML=`<main class="page gallery-page">${header()}<section class="gallery-shell"><h2>📸 Fotogalerij</h2><p>Foto's laden…</p></section></main>`;document.querySelector('#gallery-logout').onclick=()=>supabase.auth.signOut();if(profile?.role!=='teacher'){root().querySelector('.gallery-shell').innerHTML='<h2>Geen toegang</h2><p>De fotogalerij is voorlopig alleen beschikbaar voor leerkrachten.</p>';return;}try{await load();if(active)render();}catch(e){if(active)root().querySelector('.gallery-shell').innerHTML=`<h2>Fotogalerij niet beschikbaar</h2><p>${escapeHtml(e.message)}</p>`;}}
+window.addEventListener('k3paalbos:navigate',e=>{if(e.detail?.page!=='gallery')release();});
