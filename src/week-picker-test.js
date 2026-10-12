@@ -44,7 +44,7 @@ function addStyles(){
     .compact-picker-layout .week-title p{font-size:13px}
     .compact-picker-layout .week-head-drop{cursor:pointer;min-height:58px!important}
     .week-picker-head-button{width:100%;height:100%;min-height:52px;border:0;border-radius:8px;background:#fff;color:#31543a;font-weight:800;padding:4px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.05;font-size:18px}
-    .compact-picker-layout .week-day-head{display:grid!important;grid-template-columns:minmax(0,1.15fr) minmax(0,0.85fr)!important;gap:5px}
+    .compact-picker-layout .week-day-head{display:grid!important;grid-template-columns:minmax(0,58px) minmax(0,1fr)!important;gap:5px}
     .compact-picker-layout .week-day-head .week-head-drop.number{min-width:0}
     .compact-picker-layout .week-day-head .week-head-drop.name{min-width:0}
     .week-picker-head-button.number{font-size:20px}
