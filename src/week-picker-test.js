@@ -44,10 +44,14 @@ function addStyles(){
     .compact-picker-layout .week-title p{font-size:13px}
     .compact-picker-layout .week-head-drop{cursor:pointer;min-height:58px!important}
     .week-picker-head-button{width:100%;height:100%;min-height:52px;border:0;border-radius:8px;background:#fff;color:#31543a;font-weight:800;padding:4px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.05;font-size:18px}
+    .compact-picker-layout .week-day-head{display:grid!important;grid-template-columns:minmax(0,1.15fr) minmax(0,0.85fr)!important;gap:5px}
+    .compact-picker-layout .week-day-head .week-head-drop.number{min-width:0}
+    .compact-picker-layout .week-day-head .week-head-drop.name{min-width:0}
     .week-picker-head-button.number{font-size:20px}
     .week-picker-head-drop-filled{position:relative}
-    .week-picker-head-drop-filled .week-picker-head-button{padding-right:25px}
-    .week-picker-head-remove{position:absolute;right:3px;top:3px;width:20px;height:20px;border:0;border-radius:50%;background:#fff;color:#a46d60;font-size:15px;line-height:1;padding:0;display:grid;place-items:center;box-shadow:0 1px 3px #0001;cursor:pointer;z-index:2}
+    .week-picker-head-drop-filled .week-picker-head-button{padding:4px}
+    .week-picker-head-drop-filled .week-picker-head-button:not(.number){font-size:clamp(12px,1.15vw,18px)}
+    .week-picker-head-remove{position:absolute;right:2px;top:2px;width:20px;height:20px;border:0;border-radius:50%;background:#fff;color:#a46d60;font-size:15px;line-height:1;padding:0;display:grid;place-items:center;box-shadow:0 1px 3px #0001;cursor:pointer;z-index:2}
     .week-picker-head-remove:hover{background:#fff0ed;color:#b44f4f}
     .week-picker-head-button.empty{background:transparent;color:#7f9385;font-size:12px}
     .week-picker-relative{margin:7px 7px 0;min-height:48px;border:2px dashed #c7d7c4;border-radius:11px;background:#fff;color:#607768;font-weight:800;font-size:14px;padding:5px;display:flex;align-items:center;justify-content:center;text-align:center;width:calc(100% - 14px)}
