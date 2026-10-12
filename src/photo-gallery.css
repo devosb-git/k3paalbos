@@ -68,3 +68,11 @@
 /* Exact same outer width as .topbar: both fill the padded .page. */
 .gallery-page .gallery-shell{width:100%;max-width:none;margin:0 0 40px}
 @media(max-width:600px){.gallery-page .gallery-shell{width:100%;margin:0 0 24px}}
+
+/* Nested gallery folders: breadcrumb trail and explicit subfolder labels. */
+.gallery-breadcrumb{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:0 0 14px;color:#64806b;font-size:14px}
+.gallery-breadcrumb button{border:1px solid #dce9db;background:#f3f8f0;color:#31553b;border-radius:9px;padding:7px 10px;cursor:pointer;font-weight:700}
+.gallery-breadcrumb button:hover{background:#e5f0e1}
+.gallery-folder-open em{font-size:11px;font-style:normal;font-weight:800;letter-spacing:.02em;color:#46734e;background:#e7f3e5;border-radius:20px;padding:3px 9px}
+.gallery-folder-back{background:#f3f8f0;border-style:dashed}
+.gallery-move-label select{max-width:76%}
