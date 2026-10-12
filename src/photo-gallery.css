@@ -26,3 +26,5 @@
 .gallery-rotate:hover{background:#d9ead5!important}
 .gallery-rotate:disabled{opacity:.5;cursor:wait}
 .gallery-card-bottom span{flex:1;min-width:0}
+
+.gallery-card-actions{display:flex;align-items:center;gap:5px;flex-shrink:0}.gallery-card-actions .gallery-rotate{display:grid;place-items:center;width:30px;height:30px;padding:0!important;font-size:21px;line-height:1}.gallery-card-actions [data-delete]{display:grid;place-items:center;width:30px;height:30px;padding:0;font-size:16px}
