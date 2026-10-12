@@ -90,17 +90,42 @@ function setupPhotoDrag(){
  document.querySelectorAll('.gallery-preview').forEach(source=>{
   source.addEventListener('dragstart',e=>{if(touchPhotoDrag){e.preventDefault();return}dragPhotoId=source.dataset.view;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',dragPhotoId);source.classList.add('gallery-dragging')});
   source.addEventListener('dragend',()=>{source.classList.remove('gallery-dragging');clearPhotoDrag()});
-  source.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch'&&e.pointerType!=='pen')return;if(e.button!==0)return;touchPhotoDrag={pointerId:e.pointerId,id:source.dataset.view,source,startX:e.clientX,startY:e.clientY,moved:false,ghost:null};});
-  source.addEventListener('pointermove',e=>{const d=touchPhotoDrag;if(!d||e.pointerId!==d.pointerId)return;const distance=Math.hypot(e.clientX-d.startX,e.clientY-d.startY);if(!d.moved&&distance<12)return;if(!d.moved){d.moved=true;try{source.setPointerCapture(e.pointerId)}catch{}source.classList.add('gallery-touch-dragging');document.body.classList.add('gallery-is-dragging');const ghost=document.createElement('div');ghost.className='gallery-drag-ghost';ghost.textContent='📷 Foto verplaatsen';document.body.appendChild(ghost);d.ghost=ghost}e.preventDefault();if(e.clientY<85)window.scrollBy(0,-18);else if(e.clientY>window.innerHeight-85)window.scrollBy(0,18);d.ghost.style.left=e.clientX+'px';d.ghost.style.top=e.clientY+'px';highlightFolder(folderAtPoint(e.clientX,e.clientY))});
-  source.addEventListener('pointerup',e=>{const d=touchPhotoDrag;if(!d||e.pointerId!==d.pointerId)return;const folder=d.moved?folderAtPoint(e.clientX,e.clientY):null;const id=d.id;const moved=d.moved;clearPhotoDrag();if(moved){e.preventDefault();e.stopPropagation();if(folder)dropPhotoIntoFolder(id,folder.dataset.folder)}});
-  source.addEventListener('pointercancel',()=>clearPhotoDrag());
+  source.addEventListener('pointerdown',e=>{
+   if(e.pointerType!=='touch'&&e.pointerType!=='pen')return;
+   if(e.button!==0)return;
+   clearPhotoDrag();
+   touchPhotoDrag={pointerId:e.pointerId,id:source.dataset.view,source,startX:e.clientX,startY:e.clientY,moved:false,ghost:null};
+   try{source.setPointerCapture(e.pointerId)}catch{}
+  });
  });
  document.querySelectorAll('[data-folder]').forEach(folder=>{
   folder.addEventListener('dragover',e=>{if(!dragPhotoId||folder.dataset.folder==='all')return;e.preventDefault();e.dataTransfer.dropEffect='move';highlightFolder(folder)});
   folder.addEventListener('dragleave',e=>{if(!folder.contains(e.relatedTarget))clearFolderHighlight()});
-  folder.addEventListener('drop',e=>{if(!dragPhotoId)return;e.preventDefault();e.stopPropagation();const id=dragPhotoId;const target=folder.dataset.folder;clearPhotoDrag();dropPhotoIntoFolder(id,target)});
+  folder.addEventListener('drop',e=>{if(!dragPhotoId)return;e.preventDefault();e.stopPropagation();const id=dragPhotoId,target=folder.dataset.folder;clearPhotoDrag();dropPhotoIntoFolder(id,target)});
  });
 }
+function onGalleryPointerMove(e){
+ const d=touchPhotoDrag;if(!d||e.pointerId!==d.pointerId||!active)return;
+ const distance=Math.hypot(e.clientX-d.startX,e.clientY-d.startY);
+ if(!d.moved&&distance<10)return;
+ if(!d.moved){
+  d.moved=true;d.source.classList.add('gallery-touch-dragging');document.body.classList.add('gallery-is-dragging');
+  const ghost=document.createElement('div');ghost.className='gallery-drag-ghost';ghost.textContent='📷 Foto verplaatsen';document.body.appendChild(ghost);d.ghost=ghost;
+ }
+ e.preventDefault();
+ if(e.clientY<90)window.scrollBy(0,-16);else if(e.clientY>window.innerHeight-90)window.scrollBy(0,16);
+ d.ghost.style.left=e.clientX+'px';d.ghost.style.top=e.clientY+'px';
+ highlightFolder(folderAtPoint(e.clientX,e.clientY));
+}
+function onGalleryPointerUp(e){
+ const d=touchPhotoDrag;if(!d||e.pointerId!==d.pointerId)return;
+ const folder=d.moved?folderAtPoint(e.clientX,e.clientY):null,id=d.id,moved=d.moved;
+ clearPhotoDrag();
+ if(moved){e.preventDefault();e.stopPropagation();if(folder)dropPhotoIntoFolder(id,folder.dataset.folder);else status('Sleep de foto naar een map hierboven.')}
+}
+document.addEventListener('pointermove',onGalleryPointerMove,{capture:true,passive:false});
+document.addEventListener('pointerup',onGalleryPointerUp,{capture:true,passive:false});
+document.addEventListener('pointercancel',e=>{if(touchPhotoDrag?.pointerId===e.pointerId)clearPhotoDrag()},true);
 function bind(){document.querySelector('#gallery-logout').onclick=()=>supabase.auth.signOut();document.querySelector('#gallery-files').onchange=e=>{const files=[...e.target.files];if(files.length)upload(files)};document.querySelector('#gallery-prev').onclick=()=>next(-1);document.querySelector('#gallery-next').onclick=()=>next();document.querySelector('#gallery-play').onclick=toggle;document.querySelector('#gallery-slideshow-folder').onchange=e=>{slideshowFolder=e.target.value;stop();slide=0;render()};document.querySelector('#gallery-add-folder').onclick=createFolder;document.querySelectorAll('[data-folder]').forEach(b=>b.onclick=()=>{currentFolder=b.dataset.folder;render()});document.querySelectorAll('[data-rename-folder]').forEach(b=>b.onclick=()=>renameFolder(b.dataset.renameFolder));document.querySelectorAll('[data-delete-folder]').forEach(b=>b.onclick=()=>deleteFolder(b.dataset.deleteFolder));document.querySelectorAll('[data-move-photo]').forEach(b=>b.onchange=()=>movePhoto(b.dataset.movePhoto,b.value));setupPhotoDrag();document.querySelector('#gallery-interval').onchange=e=>{seconds=Number(e.target.value);if(playing)play()};document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{const index=selectedPhotos().findIndex(p=>p.id===b.dataset.view);if(index>=0){slide=index;next(0)}else status('Deze foto is niet geselecteerd voor de diavoorstelling.')});document.querySelectorAll('[data-show]').forEach(b=>b.onchange=()=>setSlideshowVisibility(b.dataset.show,b.checked));document.querySelectorAll('[data-rotate]').forEach(b=>b.onclick=()=>rotatePhoto(b.dataset.rotate));document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.delete));document.querySelector('#gallery-fullscreen').onclick=async()=>{const player=document.querySelector('#gallery-player');if(!document.fullscreenElement){try{await player.requestFullscreen();}catch(e){status('Volledig scherm is niet beschikbaar in deze browser.',true);}}else await document.exitFullscreen();};}
 export async function showGallery(profile){release();active=true;root().innerHTML=`<main class="page gallery-page">${header()}<section class="gallery-shell"><h2>📸 Fotogalerij</h2><p>Foto's laden…</p></section></main>`;document.querySelector('#gallery-logout').onclick=()=>supabase.auth.signOut();if(profile?.role!=='teacher'){root().querySelector('.gallery-shell').innerHTML='<h2>Geen toegang</h2><p>De fotogalerij is voorlopig alleen beschikbaar voor leerkrachten.</p>';return;}try{await load();if(active)render();}catch(e){if(active)root().querySelector('.gallery-shell').innerHTML=`<h2>Fotogalerij niet beschikbaar</h2><p>${escapeHtml(e.message)}</p>`;}}
 window.addEventListener('k3paalbos:navigate',e=>{if(e.detail?.page!=='gallery')release();});
