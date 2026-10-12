@@ -60,3 +60,7 @@
 .gallery-page{background:linear-gradient(180deg,#f8fbf7 0%,#eef7ee 100%)}
 .gallery-shell{box-sizing:border-box;width:calc(100% - 48px);max-width:1600px;margin:24px auto 48px;padding:24px 26px 48px;background:#fff;border:2px solid #dce9db;border-radius:24px;box-shadow:0 8px 24px #234c2712}
 @media(max-width:600px){.gallery-shell{width:calc(100% - 24px);margin:12px auto 28px;padding:16px 12px 30px;border-radius:18px}}
+
+/* Align gallery board with the full available navigation width. */
+.gallery-shell{width:calc(100% - 32px);max-width:none;margin:16px auto 40px}
+@media(max-width:600px){.gallery-shell{width:calc(100% - 16px);margin:8px auto 24px}}
