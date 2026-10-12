@@ -47,3 +47,11 @@
 .gallery-folder-open{min-height:105px;padding:0;justify-content:center;gap:8px}
 .gallery-folder-tile small{display:block;line-height:1.4}
 .gallery-folder-actions{bottom:10px;right:10px}
+
+/* Native desktop drag and pointer-based iPad drag, matching the weather board. */
+.gallery-preview{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:element}
+.gallery-preview.gallery-dragging,.gallery-preview.gallery-touch-dragging{opacity:.48}
+.gallery-folder-tile.gallery-drop-over,.gallery-folder-open.gallery-drop-over{background:#dff0db!important;border-color:#72ae79!important;box-shadow:inset 0 0 0 3px #72ae79}
+.gallery-folder-open.gallery-drop-over{border-radius:12px}
+.gallery-drag-ghost{position:fixed;z-index:999999;pointer-events:none;transform:translate(-50%,-115%);padding:9px 13px;border-radius:12px;background:#eaf3e7;border:2px solid #72ae79;box-shadow:0 6px 18px #234c2733;color:#31553b;font-size:13px;font-weight:700;white-space:nowrap}
+.gallery-is-dragging{user-select:none;-webkit-user-select:none}
