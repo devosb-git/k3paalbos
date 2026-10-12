@@ -64,3 +64,7 @@
 /* Align gallery board with the full available navigation width. */
 .gallery-shell{width:calc(100% - 32px);max-width:none;margin:16px auto 40px}
 @media(max-width:600px){.gallery-shell{width:calc(100% - 16px);margin:8px auto 24px}}
+
+/* Exact same outer width as .topbar: both fill the padded .page. */
+.gallery-page .gallery-shell{width:100%;max-width:none;margin:0 0 40px}
+@media(max-width:600px){.gallery-page .gallery-shell{width:100%;margin:0 0 24px}}
