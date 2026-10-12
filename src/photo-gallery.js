@@ -25,9 +25,13 @@ async function upload(files){
  const button=document.querySelector('.gallery-upload');
  if(button)button.classList.add('is-uploading');
  let count=0,failed=0,lastError='';
- const {data:{user},error:userError}=await supabase.auth.getUser();
- if(userError||!user){status('Je bent niet meer ingelogd. Log opnieuw in.',true);loading=false;if(button)button.classList.remove('is-uploading');return;}
+ let user;
  try{
+  uploadProgress(0,files.length,'Stap 1/3: aanmelding controleren…');
+  const authResult=await withTimeout(supabase.auth.getUser(),12000);
+  if(authResult.error||!authResult.data?.user)throw new Error('Je aanmelding is verlopen. Log opnieuw in.');
+  user=authResult.data.user;
+  uploadProgress(0,files.length,'Stap 2/3: fotoformaat en grootte controleren…');
   for(let i=0;i<files.length;i++){
    const file=files[i];
    const name=file.name||'foto';
@@ -54,9 +58,10 @@ async function upload(files){
     uploadProgress(i+1,files.length,`Foto ${i+1} mislukt: ${lastError}`,failed);
    }
   }
+  uploadProgress(files.length,files.length,'Stap 3/3: galerij vernieuwen…',failed);
   await withTimeout(load(),20000);
   if(active){render();status(failed?`${count} foto('s) toegevoegd, ${failed} mislukt. Laatste fout: ${lastError}`:`Gelukt! ${count} foto('s) toegevoegd.`,failed>0);}
- }catch(error){status(`Upload afgerond, maar vernieuwen mislukt: ${error.message}`,true);}
+ }catch(error){status(`Upload onderbroken: ${error.message}`,true);const detail=document.querySelector('#gallery-progress-detail');if(detail)detail.textContent=`Fout: ${error.message}`;}
  finally{loading=false;const el=document.querySelector('.gallery-upload');if(el)el.classList.remove('is-uploading');}
 }
 async function setSlideshowVisibility(id,visible){const {error}=await supabase.from('gallery_photos').update({show_in_slideshow:visible}).eq('id',id);if(error){status('Wijziging niet opgeslagen: '+error.message,true);render();return;}const photo=photos.find(p=>p.id===id);if(photo)photo.show_in_slideshow=visible;stop();slide=Math.min(slide,Math.max(0,selectedPhotos().length-1));render();status(visible?'Foto toegevoegd aan diavoorstelling.':'Foto verborgen in diavoorstelling.');}
