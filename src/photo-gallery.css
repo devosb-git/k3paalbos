@@ -41,3 +41,9 @@
 .gallery-save-folder{background:#668f6d!important;border-color:#668f6d!important}
 .gallery-controls select{max-width:180px}
 @media(max-width:600px){.gallery-folder-list{grid-template-columns:repeat(2,minmax(0,1fr))}.gallery-controls label{font-size:13px}}
+
+/* Give folder counts their own space above the edit/delete actions. */
+.gallery-folder-tile{min-height:165px;box-sizing:border-box;padding:14px 12px 44px}
+.gallery-folder-open{min-height:105px;padding:0;justify-content:center;gap:8px}
+.gallery-folder-tile small{display:block;line-height:1.4}
+.gallery-folder-actions{bottom:10px;right:10px}
