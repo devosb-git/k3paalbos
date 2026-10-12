@@ -5,6 +5,7 @@ const CLASS_ID='00000000-0000-4000-8000-000000000001';
 const BUCKET='class-gallery';
 let photos=[],urls=new Map(),slide=0,seconds=10,timer=null,playing=false,active=false,fullscreen=false,loading=false;
 const root=()=>document.querySelector('#app');
+function uniquePhotoId(){if(globalThis.crypto?.randomUUID)return globalThis.crypto.randomUUID();const bytes=new Uint8Array(16);if(globalThis.crypto?.getRandomValues){globalThis.crypto.getRandomValues(bytes);}else{for(let i=0;i<bytes.length;i++)bytes[i]=Math.floor(Math.random()*256);}bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;return [...bytes].map((b,i)=>[4,6,8,10].includes(i)?'-'+b.toString(16).padStart(2,'0'):b.toString(16).padStart(2,'0')).join('');}
 function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function stop(){clearInterval(timer);timer=null;playing=false;}
 function release(){stop();active=false;urls.clear();}
@@ -43,7 +44,7 @@ async function upload(files){
     continue;
    }
    const ext=({'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/heic':'heic','image/heif':'heif'})[mime];
-   const path=`${CLASS_ID}/${crypto.randomUUID()}.${ext}`;
+   const path=`${CLASS_ID}/${uniquePhotoId()}.${ext}`;
    try{
     uploadProgress(i,files.length,`Foto ${i+1} van ${files.length} uploaden: ${name} (${(file.size/1048576).toFixed(1)} MB)`,failed);
     const {error:upError}=await withTimeout(supabase.storage.from(BUCKET).upload(path,file,{contentType:mime,upsert:false}));
