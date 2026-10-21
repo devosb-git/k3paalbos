@@ -58,7 +58,7 @@ const homeMenuItems=[
  ['gallery','Fotogalerij','menu_fotogallerij.png']
 ];
 function renderHome(){
- app.innerHTML=`<main class="page home-page">${header('home')}<section class="home-shell"><div class="home-intro"><div><h2>Welkom bij De Vosjes 🦊</h2><p>Kies waar je vandaag mee aan de slag wilt.</p></div></div><div class="home-menu">${homeMenuItems.map(([id,label,file])=>`<button type="button" class="home-menu-card" data-home-page="${id}" aria-label="Open ${label}"><img src="${homeMenuImages[`./menu-items/${file}`]||''}" alt="" loading="lazy"><span>${label}</span></button>`).join('')}</div></section></main>`;
+ app.innerHTML=`<main class="page home-page">${header('home')}<section class="home-shell"><div class="home-intro"><div><h2>Welkom bij De Vosjes 🦊</h2><p>Kies waar je vandaag mee aan de slag wilt.</p></div></div><div class="home-menu">${homeMenuItems.map(([id,label,file])=>`<button type="button" class="home-menu-card" data-home-page="${id}" aria-label="Open ${label}"><img src="${homeMenuImages[`./menu-items/${file}`]||''}" alt="" loading="lazy"></button>`).join('')}</div></section></main>`;
  bindHeader();
  document.querySelectorAll('[data-home-page]').forEach(button=>button.addEventListener('click',()=>{const page=button.dataset.homePage;if(page==='tasks'||page==='dolls'||page==='attendance'){window.dispatchEvent(new CustomEvent(page==='tasks'?'k3paalbos:tasks':page==='dolls'?'k3paalbos:dolls':'k3paalbos:navigate',{detail:{page}}));}else navigate(page)}));
 }
