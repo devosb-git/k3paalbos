@@ -57,3 +57,48 @@
 .home-page .home-menu-card img{border-radius:0}
 @media(max-width:750px){.home-page .home-menu{grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}}
 @media(max-width:420px){.home-page .home-menu{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}}
+
+/* Vossenhol home redesign: warm welcome and balanced, compact 3x3 menu. */
+.home-page .home-shell{
+  width:100%;max-width:none;box-sizing:border-box;
+  background:linear-gradient(145deg,#fffdf7 0%,#f8fbf5 100%);
+  border:1px solid #dce8d5;
+  border-radius:24px;
+  padding:clamp(18px,2.5vw,34px);
+}
+.home-page .home-intro{margin-bottom:22px}
+.home-page .home-welcome{
+  display:flex;align-items:center;gap:18px;
+  padding:clamp(16px,2.5vw,26px);
+  background:linear-gradient(105deg,#f5f0df,#edf6e9);
+  border:1px solid #e0e9d3;border-radius:20px;
+}
+.home-page .home-welcome-fox{
+  flex:0 0 auto;width:70px;height:70px;display:grid;place-items:center;
+  background:#fffaf1;border-radius:22px;font-size:43px;
+}
+.home-page .home-eyebrow{font-size:11px;font-weight:800;letter-spacing:.16em;color:#83967b;margin:0 0 5px}
+.home-page .home-welcome h2{font-size:clamp(23px,2.5vw,34px);color:#31553b;margin:0 0 7px}
+.home-page .home-welcome p:last-child{margin:0;color:#647967}
+.home-page .home-menu{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:clamp(12px,1.5vw,20px);
+  max-width:1050px;margin:0 auto;
+}
+.home-page .home-menu-card{
+  border:0;background:transparent;box-shadow:none;padding:0;
+  border-radius:0;min-width:0;
+}
+.home-page .home-menu-card:hover{border:0;background:transparent;box-shadow:none}
+.home-page .home-menu-card img{display:block;width:100%;height:auto;aspect-ratio:auto;border-radius:0}
+@media(max-width:750px){
+ .home-page .home-menu{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+ .home-page .home-welcome{gap:11px;padding:14px}
+ .home-page .home-welcome-fox{width:52px;height:52px;font-size:32px;border-radius:16px}
+}
+@media(max-width:420px){
+ .home-page .home-menu{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+ .home-page .home-shell{padding:10px}
+ .home-page .home-welcome h2{font-size:20px}
+ .home-page .home-welcome-fox{width:40px;height:40px;font-size:25px}
+}
