@@ -10,3 +10,12 @@
 .home-menu-card span{font-weight:800;color:#31553b;font-size:clamp(15px,1.6vw,20px);text-align:center;padding:3px 6px 7px}
 @media(max-width:750px){.home-menu{grid-template-columns:repeat(2,minmax(0,1fr))}.home-shell{padding:16px}}
 @media(max-width:420px){.home-menu{gap:9px}.home-menu-card{padding:7px;border-radius:14px}.home-menu-card span{font-size:13px}.home-shell{padding:11px}}
+
+/* Compact home: keep all nine illustrated menu tiles in a neat 3-column grid. */
+.home-shell{max-width:960px;margin:0 auto 32px;padding:18px}
+.home-intro{margin-bottom:14px}
+.home-menu{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.home-menu-card{gap:0;padding:6px;border-radius:15px}
+.home-menu-card img{width:100%;height:auto;aspect-ratio:auto;object-fit:contain;border-radius:10px}
+@media(max-width:750px){.home-menu{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.home-shell{padding:10px}.home-menu-card{padding:4px;border-radius:11px}}
+@media(max-width:420px){.home-menu{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.home-menu-card{padding:2px}}
