@@ -45,6 +45,7 @@ function dropWeekPart(e){if(!dragged)return;const target=document.elementFromPoi
 function dropActivity(e){if(!dragged)return;const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('.activity-zone');if(!target)return;const day=+target.dataset.activityDay;if(dragged.type==='activity'){addWeekActivity(day,dragged.value)}else if(dragged.type==='move-activity'){const s=loadWeek(),max=day===3?4:7;if((s.activities[day]||[]).length>=max&&day!==dragged.value.from){dragged=null;return}const from=dragged.value.from,index=dragged.value.index,a={icon:dragged.value.icon,label:dragged.value.label};s.activities[from]=(s.activities[from]||[]).filter((_,i)=>i!==index);s.activities[day]=s.activities[day]||[];s.activities[day].push(a);saveWeek(s);dragged=null;renderPage()}}
 function addWeekActivity(day,a){const s=loadWeek(),max=day===3?4:7;s.activities[day]=s.activities[day]||[];if(s.activities[day].length>=max)return;s.activities[day].push({icon:a.icon,label:a.label});saveWeek(s);dragged=null;renderPage()}
 async function add(day,x){const pos=items.filter(i=>i.day===day).length,{data,error}=await supabase.from('calendar_items').insert({day,icon:x.icon,label:x.label,position:pos}).select().single();if(!error){items.push(data);dragged=null;renderPage()}}
+const homeMenuImages=import.meta.glob('./menu-items/*.png',{eager:true,query:'?url',import:'default'});
 const homeMenuItems=[
  ['attendance','Aanwezigheden','menu_aanwezigheden.png'],
  ['calendar','Maandkalender','menu_maandkalender.png'],
@@ -57,7 +58,7 @@ const homeMenuItems=[
  ['gallery','Fotogalerij','menu_fotogallerij.png']
 ];
 function renderHome(){
- app.innerHTML=`<main class="page home-page">${header('home')}<section class="home-shell"><div class="home-intro"><div><h2>Welkom bij De Vosjes 🦊</h2><p>Kies waar je vandaag mee aan de slag wilt.</p></div></div><div class="home-menu">${homeMenuItems.map(([id,label,file])=>`<button type="button" class="home-menu-card" data-home-page="${id}" aria-label="Open ${label}"><img src="${import.meta.env.BASE_URL}src/menu-items/${file}" alt="" loading="lazy"><span>${label}</span></button>`).join('')}</div></section></main>`;
+ app.innerHTML=`<main class="page home-page">${header('home')}<section class="home-shell"><div class="home-intro"><div><h2>Welkom bij De Vosjes 🦊</h2><p>Kies waar je vandaag mee aan de slag wilt.</p></div></div><div class="home-menu">${homeMenuItems.map(([id,label,file])=>`<button type="button" class="home-menu-card" data-home-page="${id}" aria-label="Open ${label}"><img src="${homeMenuImages[`./menu-items/${file}`]||''}" alt="" loading="lazy"><span>${label}</span></button>`).join('')}</div></section></main>`;
  bindHeader();
  document.querySelectorAll('[data-home-page]').forEach(button=>button.addEventListener('click',()=>{const page=button.dataset.homePage;if(page==='tasks'||page==='dolls'||page==='attendance'){window.dispatchEvent(new CustomEvent(page==='tasks'?'k3paalbos:tasks':page==='dolls'?'k3paalbos:dolls':'k3paalbos:navigate',{detail:{page}}));}else navigate(page)}));
 }
