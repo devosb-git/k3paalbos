@@ -38,3 +38,22 @@
 @media(max-width:420px){
   .home-page .home-menu{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
 }
+
+/* Home menu: five smaller images per row, without a second card border. */
+.home-page .home-menu{grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(8px,1.2vw,16px)}
+.home-page .home-menu-card{
+  border:0;
+  background:transparent;
+  box-shadow:none;
+  padding:0;
+  border-radius:0;
+  overflow:visible;
+}
+.home-page .home-menu-card:hover{
+  border-color:transparent;
+  background:transparent;
+  box-shadow:none;
+}
+.home-page .home-menu-card img{border-radius:0}
+@media(max-width:750px){.home-page .home-menu{grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}}
+@media(max-width:420px){.home-page .home-menu{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}}
