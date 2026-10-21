@@ -14,7 +14,7 @@ const weekDayNames=[{id:1,name:'maandag',color:'green'},{id:2,name:'dinsdag',col
 const weekNumbers=weekDayNames.map(day=>({id:day.id,label:String(day.id),color:day.color}));
 const weekSlots=weekDayNames.map(day=>({id:day.id,color:day.color}));
 const months=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'],weekdays=['ma','di','wo','do','vr','za','zo'];
-const now=new Date();let viewDate=new Date(now.getFullYear(),now.getMonth(),1),items=[],profile=null,dragged=null,currentPage='calendar';
+const now=new Date();let viewDate=new Date(now.getFullYear(),now.getMonth(),1),items=[],profile=null,dragged=null,currentPage='home';
 const app=document.querySelector('#app');
 const pad=n=>String(n).padStart(2,'0'),key=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`,firstMonday=d=>d.getDay()===0?6:d.getDay()-1,daysIn=d=>new Date(d.getFullYear(),d.getMonth()+1,0).getDate(),today=d=>key(d)===key(now);
 function login(message=''){app.innerHTML=`<main class="login-page"><section class="login-card"><div class="login-fox">🦊</div><h1>De Vosjes</h1><p>Welkom! Log in om de kalender te bekijken.</p><form id="login"><label>E-mailadres<input id="email" type="email" autocomplete="username" required placeholder="juf@school.be"></label><label>Wachtwoord<input id="password" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">🦊 Inloggen</button><div class="error">${message}</div></form></section></main>`;document.querySelector('#login').onsubmit=async e=>{e.preventDefault();const b=e.target.querySelector('button');b.disabled=true;b.textContent='Even wachten…';const {error}=await supabase.auth.signInWithPassword({email:email.value.trim(),password:password.value});if(error)return login('E-mailadres of wachtwoord klopt niet.');await start()}}
@@ -45,6 +45,22 @@ function dropWeekPart(e){if(!dragged)return;const target=document.elementFromPoi
 function dropActivity(e){if(!dragged)return;const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('.activity-zone');if(!target)return;const day=+target.dataset.activityDay;if(dragged.type==='activity'){addWeekActivity(day,dragged.value)}else if(dragged.type==='move-activity'){const s=loadWeek(),max=day===3?4:7;if((s.activities[day]||[]).length>=max&&day!==dragged.value.from){dragged=null;return}const from=dragged.value.from,index=dragged.value.index,a={icon:dragged.value.icon,label:dragged.value.label};s.activities[from]=(s.activities[from]||[]).filter((_,i)=>i!==index);s.activities[day]=s.activities[day]||[];s.activities[day].push(a);saveWeek(s);dragged=null;renderPage()}}
 function addWeekActivity(day,a){const s=loadWeek(),max=day===3?4:7;s.activities[day]=s.activities[day]||[];if(s.activities[day].length>=max)return;s.activities[day].push({icon:a.icon,label:a.label});saveWeek(s);dragged=null;renderPage()}
 async function add(day,x){const pos=items.filter(i=>i.day===day).length,{data,error}=await supabase.from('calendar_items').insert({day,icon:x.icon,label:x.label,position:pos}).select().single();if(!error){items.push(data);dragged=null;renderPage()}}
-function renderPage(){if(currentPage==='calendar')return renderCalendar();if(currentPage==='week')return renderWeek();if(currentPage==='day')return showDayCalendar(navigate,profile);if(currentPage==='weather')return showWeather(profile);if(currentPage==='clothing')return showClothing(profile);if(currentPage==='gallery')return showGallery(profile)}
+const homeMenuItems=[
+ ['attendance','Aanwezigheden','menu_aanwezigheden.png'],
+ ['calendar','Maandkalender','menu_maandkalender.png'],
+ ['week','Weekkalender','menu_weekkalender.png'],
+ ['day','Dagverloop','menu_dagverloop.png'],
+ ['weather','Weer','menu_weer.png'],
+ ['clothing','Kleding','menu_kleding.png'],
+ ['tasks','Klastaken','menu_klastaken.png'],
+ ['dolls','Klaspoppen','menu_klaspoppen.png'],
+ ['gallery','Fotogalerij','menu_fotogallerij.png']
+];
+function renderHome(){
+ app.innerHTML=`<main class="page home-page">${header('home')}<section class="home-shell"><div class="home-intro"><div><h2>Welkom bij De Vosjes 🦊</h2><p>Kies waar je vandaag mee aan de slag wilt.</p></div></div><div class="home-menu">${homeMenuItems.map(([id,label,file])=>`<button type="button" class="home-menu-card" data-home-page="${id}" aria-label="Open ${label}"><img src="${import.meta.env.BASE_URL}src/menu-items/${file}" alt="" loading="lazy"><span>${label}</span></button>`).join('')}</div></section></main>`;
+ bindHeader();
+ document.querySelectorAll('[data-home-page]').forEach(button=>button.addEventListener('click',()=>{const page=button.dataset.homePage;if(page==='tasks'||page==='dolls'||page==='attendance'){window.dispatchEvent(new CustomEvent(page==='tasks'?'k3paalbos:tasks':page==='dolls'?'k3paalbos:dolls':'k3paalbos:navigate',{detail:{page}}));}else navigate(page)}));
+}
+function renderPage(){if(currentPage==='home')return renderHome();if(currentPage==='calendar')return renderCalendar();if(currentPage==='week')return renderWeek();if(currentPage==='day')return showDayCalendar(navigate,profile);if(currentPage==='weather')return showWeather(profile);if(currentPage==='clothing')return showClothing(profile);if(currentPage==='gallery')return showGallery(profile)}
 async function start(){const {data:{session}}=await supabase.auth.getSession();if(!session)return login();profile=await getProfile(session.user.id);if(!profile)return denied();await load();try{await loadWeekState()}catch(error){console.error('Weekkalender laden mislukt:',error)}renderPage()}
 supabase.auth.onAuthStateChange((_event,session)=>{if(!session)login()});start();
